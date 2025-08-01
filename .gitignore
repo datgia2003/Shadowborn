@@ -1,0 +1,38 @@
+[Lưu ý: từ đây trở đi là nội dung .gitignore chuẩn cho Unity]
+
+[Lưu ý: nếu có GitHub Copilot hoặc IDE như Rider/VSCode, nó cũng thường tự gợi ý mẫu này]
+
+[Lưu ý: Nếu đã có `.gitignore`, đảm bảo các thư mục `Library/`, `Temp/`, `Build/`, `Logs/`, `obj/` được ignore]
+
+[Lưu ý: đừng push thư mục `Library` hay `.vs`, nó rất nặng và gây lỗi cho người khác clone project]
+
+# Unity generated folders
+Library/
+Temp/
+Obj/
+Build/
+Builds/
+Logs/
+MemoryCaptures/
+UserSettings/
+
+# Rider
+.idea/
+*.sln.iml
+
+# Visual Studio
+.vs/
+*.csproj
+*.sln
+*.user
+*.unityproj
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Crash reports
+sysinfo.txt
+
+# Ignore package-lock if using npm for external tools
+package-lock.json
