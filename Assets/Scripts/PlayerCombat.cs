@@ -225,69 +225,119 @@
 //     }
 // }
 
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(Animator))]
 public class PlayerCombat : MonoBehaviour
 {
-    [Header("Light Hitboxes")]
-    public Hitbox hitL1;
-    public Hitbox hitL2;
-    public Hitbox hitL3;
-    public Hitbox hitL4;
+    [Header("Light Hitboxes")] public Hitbox[] lightHits;
+    [Header("Heavy Hitboxes")] public Hitbox[] heavyHits;
 
-    [Header("Heavy Hitboxes")]
-    public Hitbox hitH1;
-    public Hitbox hitH2;
+    [Header("FX & SFX")] public GameObject[] fxLightPrefabs;
+    public AudioClip[] sfxLightClips;
+    public GameObject[] fxHeavyPrefabs;
+    public AudioClip[] sfxHeavyClips;
 
     [Header("Combo Settings")]
-    public float comboChainWindow = 0.25f;
     public float comboResetTime = 0.6f;
-    public float slideDistance = 0.5f;
-    public int maxCombo = 6;
+    public float minComboDelay = 0.3f;
+    public float bufferDuration = 0.2f;
+    public int maxLightCombo = 6;
+    public int maxHeavyCombo = 5;
+    public float comboLockDuration = 0.4f;
+
+    [Header("Attack Speed Buff")]
+    [Tooltip("Multiplier applied to Animator.speed during attacks")] public float attackSpeed = 1f;
 
     Animator anim;
     PlayerController controller;
-    bool canChain;
-    float lastAttackTime;
+    AudioSource audioSource;
 
-    AttackType currentType;
-    int currentIndex;
+    bool canChain;
+    bool comboLocked;
+    float lastAttackTime;
+    float lastComboStartTime;
+    float nextComboAllowedTime = 0.4f;
+
+    enum AttackType { None = 0, Light = 1, Heavy = 2 }
+    AttackType currentType = AttackType.None;
+    int currentIndex = 0;
     int comboCount = 0;
 
-    enum AttackType { None, Light, Heavy }
+    AttackType bufferedType = AttackType.None;
+    float bufferedTime;
 
     void Awake()
     {
         anim = GetComponent<Animator>();
         controller = GetComponent<PlayerController>();
+        audioSource = gameObject.AddComponent<AudioSource>();
     }
 
     void OnLight(InputValue v)
     {
         if (!v.isPressed) return;
-        TryAttack(AttackType.Light);
+        BufferAttack(AttackType.Light);
     }
 
     void OnHeavy(InputValue v)
     {
         if (!v.isPressed) return;
-        TryAttack(AttackType.Heavy);
+        BufferAttack(AttackType.Heavy);
+    }
+
+    void BufferAttack(AttackType type)
+    {
+        if (comboLocked) return;
+        if (Time.time < nextComboAllowedTime) return;
+
+        float timeSinceLast = Time.time - lastComboStartTime;
+        if (comboCount == 0 && timeSinceLast < minComboDelay) return;
+
+        // Nếu đang không trong attack animation thì đánh luôn
+        var state = anim.GetCurrentAnimatorStateInfo(0);
+        if (!state.IsTag("Attack"))
+        {
+            TryAttack(type);
+            return;
+        }
+
+        bufferedType = type;
+        bufferedTime = Time.time;
+    }
+
+    void Update()
+    {
+        if (comboLocked) return;
+
+        var state = anim.GetCurrentAnimatorStateInfo(0);
+        bool hasBuffer = bufferedType != AttackType.None && Time.time - bufferedTime <= bufferDuration;
+        bool readyToChain = canChain && state.IsTag("Attack") && state.normalizedTime >= 0.65f && state.normalizedTime < 1f;
+
+        if (hasBuffer && readyToChain)
+        {
+            TryAttack(bufferedType);
+            bufferedType = AttackType.None;
+        }
+
+        if (comboCount > 0 && Time.time - lastAttackTime > comboResetTime)
+        {
+            comboCount = 0;
+            currentType = AttackType.None;
+            currentIndex = 0;
+            anim.SetInteger("ComboType", 0);
+            anim.SetInteger("ComboIndex", 0);
+        }
     }
 
     void TryAttack(AttackType type)
     {
-        if (Time.time - lastAttackTime > comboResetTime || comboCount >= maxCombo)
-        {
-            comboCount = 0;
-        }
+        int maxCombo = (type == AttackType.Light) ? maxLightCombo : maxHeavyCombo;
+        if (comboCount >= maxCombo) return;
 
-        if (lastAttackTime == 0f || canChain || comboCount == 0)
-        {
-            StartAttack(type);
-        }
-
+        StartAttack(type);
     }
 
     void StartAttack(AttackType type)
@@ -296,33 +346,37 @@ public class PlayerCombat : MonoBehaviour
 
         comboCount++;
         currentType = type;
-        currentIndex = GetAttackIndex(type);
+        currentIndex = (type == AttackType.Light) ? ((comboCount - 1) % maxLightCombo) + 1 : ((comboCount - 1) % maxHeavyCombo) + 1;
 
         lastAttackTime = Time.time;
+        lastComboStartTime = Time.time;
         canChain = false;
 
         anim.ResetTrigger("AttackTrigger");
-        anim.SetInteger("ComboIndex", currentIndex);
         anim.SetInteger("ComboType", (int)currentType);
+        anim.SetInteger("ComboIndex", currentIndex);
         anim.SetTrigger("AttackTrigger");
 
+        anim.speed = attackSpeed;
+
         Vector2 dir = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
-        transform.position += (Vector3)(dir * slideDistance);
+        transform.position += (Vector3)(dir * 0.5f);
+
+        if ((type == AttackType.Light && currentIndex == maxLightCombo) ||
+            (type == AttackType.Heavy && currentIndex == maxHeavyCombo))
+        {
+            nextComboAllowedTime = Time.time + comboLockDuration;
+            StartCoroutine(LockComboCooldown());
+        }
     }
 
-    int GetAttackIndex(AttackType type)
+    IEnumerator LockComboCooldown()
     {
-        if (type == AttackType.Light)
-        {
-            return (comboCount - 1) % 4 + 1;
-        }
-        else
-        {
-            return (comboCount - 1) % 2 + 1;
-        }
+        comboLocked = true;
+        yield return new WaitForSeconds(comboLockDuration);
+        comboLocked = false;
     }
 
-    // Animation Events
     public void ComboWindowOpen() => canChain = true;
     public void ComboWindowClose() => canChain = false;
 
@@ -330,52 +384,50 @@ public class PlayerCombat : MonoBehaviour
     {
         controller.canMove = true;
         canChain = false;
+        DisableAllHits();
+        anim.speed = 1f;
+
     }
 
     public void EnableHitByStep()
     {
         DisableAllHits();
-        if (currentType == AttackType.Light)
-        {
-            switch (currentIndex)
-            {
-                case 1: hitL1?.gameObject.SetActive(true); break;
-                case 2: hitL2?.gameObject.SetActive(true); break;
-                case 3: hitL3?.gameObject.SetActive(true); break;
-                case 4: hitL4?.gameObject.SetActive(true); break;
-            }
-        }
-        else if (currentType == AttackType.Heavy)
-        {
-            switch (currentIndex)
-            {
-                case 1: hitH1?.gameObject.SetActive(true); break;
-                case 2: hitH2?.gameObject.SetActive(true); break;
-            }
-        }
+        var arr = (currentType == AttackType.Light) ? lightHits : heavyHits;
+        int idx = currentIndex - 1;
+        if (idx >= 0 && idx < arr.Length) arr[idx].gameObject.SetActive(true);
     }
 
     public void DisableAllHits()
     {
-        hitL1?.gameObject.SetActive(false);
-        hitL2?.gameObject.SetActive(false);
-        hitL3?.gameObject.SetActive(false);
-        hitL4?.gameObject.SetActive(false);
-        hitH1?.gameObject.SetActive(false);
-        hitH2?.gameObject.SetActive(false);
+        foreach (var h in lightHits) h.gameObject.SetActive(false);
+        foreach (var h in heavyHits) h.gameObject.SetActive(false);
     }
-    void Update()
+
+    public void PlayAttackFX()
     {
-        // Nếu quá thời gian không đánh, reset combo
-        if (comboCount > 0 && Time.time - lastAttackTime > comboResetTime)
-        {
-            comboCount = 0;
-            currentIndex = 0;
-            currentType = AttackType.None;
-
-            anim.SetInteger("ComboIndex", 0);
-            anim.SetInteger("ComboType", 0);
-        }
+        var arr = (currentType == AttackType.Light) ? fxLightPrefabs : fxHeavyPrefabs;
+        int idx = currentIndex - 1;
+        if (idx >= 0 && idx < arr.Length) Instantiate(arr[idx], transform.position, Quaternion.identity);
     }
 
+    public void PlayAttackSfx()
+    {
+        var arr = (currentType == AttackType.Light) ? sfxLightClips : sfxHeavyClips;
+        int idx = currentIndex - 1;
+        if (idx >= 0 && idx < arr.Length) audioSource.PlayOneShot(arr[idx]);
+    }
+
+    public void HitPauseFrame() => StartCoroutine(DoHitPause());
+    IEnumerator DoHitPause()
+    {
+        Time.timeScale = 0f;
+        yield return new WaitForSecondsRealtime(0.05f);
+        Time.timeScale = 1f;
+    }
 }
+
+
+
+
+
+

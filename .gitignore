@@ -36,3 +36,5 @@ sysinfo.txt
 
 # Ignore package-lock if using npm for external tools
 package-lock.json
+
+Assets/Art/Character/Sprites/ALL/

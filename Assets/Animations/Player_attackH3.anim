@@ -6,7 +6,7 @@ AnimationClip:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Player_attackL3
+  m_Name: Player_attackH3
   serializedVersion: 7
   m_Legacy: 0
   m_Compressed: 0
@@ -21,17 +21,17 @@ AnimationClip:
   - serializedVersion: 2
     curve:
     - time: 0
-      value: {fileID: 21300000, guid: 08f607aef6e5df64b8bb4a7e01bcdd46, type: 3}
-    - time: 0.05
-      value: {fileID: 21300000, guid: 9db0e8d72c66cdc4ab3e35df7889d7d9, type: 3}
-    - time: 0.1
-      value: {fileID: 21300000, guid: b8b6e36f9e883254394c02884d11494a, type: 3}
-    - time: 0.16666667
-      value: {fileID: 21300000, guid: b8b6e36f9e883254394c02884d11494a, type: 3}
+      value: {fileID: 21300000, guid: 8afa6b9a415459e4ba99dcfdb9458fb8, type: 3}
+    - time: 0.06666667
+      value: {fileID: 21300000, guid: 046d42ed2914f7b4faa9c436daabb291, type: 3}
+    - time: 0.11666667
+      value: {fileID: 21300000, guid: 72d392e97023ef5488f0836d0013d26a, type: 3}
+    - time: 0.21666667
+      value: {fileID: 21300000, guid: 6f893213639d0564abfa0a380eeb9f0b, type: 3}
     - time: 0.33333334
-      value: {fileID: 21300000, guid: 0f629c7b6b6627b4781c3811c0acfa44, type: 3}
+      value: {fileID: 21300000, guid: 07d2aff432d2fd44a9eff969717bb0c8, type: 3}
     - time: 0.5
-      value: {fileID: 21300000, guid: 0f629c7b6b6627b4781c3811c0acfa44, type: 3}
+      value: {fileID: 21300000, guid: 07d2aff432d2fd44a9eff969717bb0c8, type: 3}
     attribute: m_Sprite
     path: 
     classID: 212
@@ -54,12 +54,12 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     pptrCurveMapping:
-    - {fileID: 21300000, guid: 08f607aef6e5df64b8bb4a7e01bcdd46, type: 3}
-    - {fileID: 21300000, guid: 9db0e8d72c66cdc4ab3e35df7889d7d9, type: 3}
-    - {fileID: 21300000, guid: b8b6e36f9e883254394c02884d11494a, type: 3}
-    - {fileID: 21300000, guid: b8b6e36f9e883254394c02884d11494a, type: 3}
-    - {fileID: 21300000, guid: 0f629c7b6b6627b4781c3811c0acfa44, type: 3}
-    - {fileID: 21300000, guid: 0f629c7b6b6627b4781c3811c0acfa44, type: 3}
+    - {fileID: 21300000, guid: 8afa6b9a415459e4ba99dcfdb9458fb8, type: 3}
+    - {fileID: 21300000, guid: 046d42ed2914f7b4faa9c436daabb291, type: 3}
+    - {fileID: 21300000, guid: 72d392e97023ef5488f0836d0013d26a, type: 3}
+    - {fileID: 21300000, guid: 6f893213639d0564abfa0a380eeb9f0b, type: 3}
+    - {fileID: 21300000, guid: 07d2aff432d2fd44a9eff969717bb0c8, type: 3}
+    - {fileID: 21300000, guid: 07d2aff432d2fd44a9eff969717bb0c8, type: 3}
   m_AnimationClipSettings:
     serializedVersion: 2
     m_AdditiveReferencePoseClip: {fileID: 0}
@@ -92,15 +92,8 @@ AnimationClip:
     floatParameter: 0
     intParameter: 0
     messageOptions: 0
-  - time: 0.1
-    functionName: EnableHitByStep
-    data: 
-    objectReferenceParameter: {fileID: 0}
-    floatParameter: 0
-    intParameter: 0
-    messageOptions: 0
   - time: 0.11666667
-    functionName: DisableAllHits
+    functionName: EnableHitByStep
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
@@ -108,6 +101,13 @@ AnimationClip:
     messageOptions: 0
   - time: 0.13333334
     functionName: HitPauseFrame
+    data: 
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
+  - time: 0.13333334
+    functionName: DisableAllHits
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
@@ -121,14 +121,14 @@ AnimationClip:
     intParameter: 0
     messageOptions: 0
   - time: 0.48333332
-    functionName: AttackEnd
+    functionName: ComboWindowClose
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
     intParameter: 0
     messageOptions: 0
   - time: 0.48333332
-    functionName: ComboWindowClose
+    functionName: AttackEnd
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0

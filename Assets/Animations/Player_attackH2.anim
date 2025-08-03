@@ -21,23 +21,23 @@ AnimationClip:
   - serializedVersion: 2
     curve:
     - time: 0
-      value: {fileID: 21300000, guid: 5d7d30554df08384d91b237533c7454e, type: 3}
-    - time: 0.1
-      value: {fileID: 21300000, guid: 46a5ec13303e49d4c8ec65cdf6b25352, type: 3}
-    - time: 0.2
-      value: {fileID: 21300000, guid: 8ec4255fe5992f1488a456a8d3700580, type: 3}
-    - time: 0.3
-      value: {fileID: 21300000, guid: b109d0cc1f02509499f4362ac2e82f7c, type: 3}
-    - time: 0.4
-      value: {fileID: 21300000, guid: b109d0cc1f02509499f4362ac2e82f7c, type: 3}
+      value: {fileID: 21300000, guid: 3c64b2a8cfa11c64087330ac909f2191, type: 3}
+    - time: 0.06666667
+      value: {fileID: 21300000, guid: 39a1ecd7dd04870438537042bfc24f23, type: 3}
+    - time: 0.11666667
+      value: {fileID: 21300000, guid: 3d036ad05b3a3b74eb64f48b3d33fe77, type: 3}
+    - time: 0.21666667
+      value: {fileID: 21300000, guid: e36a6fafbd532e540acea49a860f7a1f, type: 3}
+    - time: 0.33333334
+      value: {fileID: 21300000, guid: 80eb05d7f12f92f4aa8a6a5bc7ab5e65, type: 3}
     - time: 0.5
-      value: {fileID: 21300000, guid: b109d0cc1f02509499f4362ac2e82f7c, type: 3}
+      value: {fileID: 21300000, guid: 80eb05d7f12f92f4aa8a6a5bc7ab5e65, type: 3}
     attribute: m_Sprite
     path: 
     classID: 212
     script: {fileID: 0}
     flags: 2
-  m_SampleRate: 10
+  m_SampleRate: 60
   m_WrapMode: 0
   m_Bounds:
     m_Center: {x: 0, y: 0, z: 0}
@@ -54,23 +54,23 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     pptrCurveMapping:
-    - {fileID: 21300000, guid: 5d7d30554df08384d91b237533c7454e, type: 3}
-    - {fileID: 21300000, guid: 46a5ec13303e49d4c8ec65cdf6b25352, type: 3}
-    - {fileID: 21300000, guid: 8ec4255fe5992f1488a456a8d3700580, type: 3}
-    - {fileID: 21300000, guid: b109d0cc1f02509499f4362ac2e82f7c, type: 3}
-    - {fileID: 21300000, guid: b109d0cc1f02509499f4362ac2e82f7c, type: 3}
-    - {fileID: 21300000, guid: b109d0cc1f02509499f4362ac2e82f7c, type: 3}
+    - {fileID: 21300000, guid: 3c64b2a8cfa11c64087330ac909f2191, type: 3}
+    - {fileID: 21300000, guid: 39a1ecd7dd04870438537042bfc24f23, type: 3}
+    - {fileID: 21300000, guid: 3d036ad05b3a3b74eb64f48b3d33fe77, type: 3}
+    - {fileID: 21300000, guid: e36a6fafbd532e540acea49a860f7a1f, type: 3}
+    - {fileID: 21300000, guid: 80eb05d7f12f92f4aa8a6a5bc7ab5e65, type: 3}
+    - {fileID: 21300000, guid: 80eb05d7f12f92f4aa8a6a5bc7ab5e65, type: 3}
   m_AnimationClipSettings:
     serializedVersion: 2
     m_AdditiveReferencePoseClip: {fileID: 0}
     m_AdditiveReferencePoseTime: 0
     m_StartTime: 0
-    m_StopTime: 0.6
+    m_StopTime: 0.51666665
     m_OrientationOffsetY: 0
     m_Level: 0
     m_CycleOffset: 0
     m_HasAdditiveReferencePose: 0
-    m_LoopTime: 1
+    m_LoopTime: 0
     m_LoopBlend: 0
     m_LoopBlendOrientation: 0
     m_LoopBlendPositionY: 0
@@ -92,8 +92,22 @@ AnimationClip:
     floatParameter: 0
     intParameter: 0
     messageOptions: 0
-  - time: 0.3
+  - time: 0.11666667
     functionName: EnableHitByStep
+    data: 
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
+  - time: 0.13333334
+    functionName: DisableAllHits
+    data: 
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
+  - time: 0.13333334
+    functionName: HitPauseFrame
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
@@ -106,22 +120,15 @@ AnimationClip:
     floatParameter: 0
     intParameter: 0
     messageOptions: 0
-  - time: 0.4
-    functionName: DisableAllHits
-    data: 
-    objectReferenceParameter: {fileID: 0}
-    floatParameter: 0
-    intParameter: 0
-    messageOptions: 0
-  - time: 0.5
-    functionName: ComboWindowClose
-    data: 
-    objectReferenceParameter: {fileID: 0}
-    floatParameter: 0
-    intParameter: 0
-    messageOptions: 0
-  - time: 0.5
+  - time: 0.48333332
     functionName: AttackEnd
+    data: 
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
+  - time: 0.48333332
+    functionName: ComboWindowClose
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
