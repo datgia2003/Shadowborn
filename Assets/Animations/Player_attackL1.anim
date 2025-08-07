@@ -30,7 +30,7 @@ AnimationClip:
       value: {fileID: 21300000, guid: ebd47fabebaf67c4d97da8fa04846e23, type: 3}
     - time: 0.33333334
       value: {fileID: 21300000, guid: 3c8dd9284c3cdf44eb6afb981e8bc69d, type: 3}
-    - time: 0.5
+    - time: 0.38333333
       value: {fileID: 21300000, guid: 3c8dd9284c3cdf44eb6afb981e8bc69d, type: 3}
     attribute: m_Sprite
     path: 
@@ -65,7 +65,7 @@ AnimationClip:
     m_AdditiveReferencePoseClip: {fileID: 0}
     m_AdditiveReferencePoseTime: 0
     m_StartTime: 0
-    m_StopTime: 0.51666665
+    m_StopTime: 0.4
     m_OrientationOffsetY: 0
     m_Level: 0
     m_CycleOffset: 0
@@ -99,6 +99,13 @@ AnimationClip:
     floatParameter: 0
     intParameter: 0
     messageOptions: 0
+  - time: 0.083333336
+    functionName: AttackHitboxCheck
+    data: 
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
   - time: 0.1
     functionName: DisableAllHits
     data: 
@@ -106,28 +113,21 @@ AnimationClip:
     floatParameter: 0
     intParameter: 0
     messageOptions: 0
-  - time: 0.11666667
-    functionName: HitPauseFrame
-    data: 
-    objectReferenceParameter: {fileID: 0}
-    floatParameter: 0
-    intParameter: 0
-    messageOptions: 0
-  - time: 0.3
+  - time: 0.25
     functionName: ComboWindowOpen
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
     intParameter: 0
     messageOptions: 0
-  - time: 0.48333332
+  - time: 0.36666667
     functionName: AttackEnd
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
     intParameter: 0
     messageOptions: 0
-  - time: 0.48333332
+  - time: 0.36666667
     functionName: ComboWindowClose
     data: 
     objectReferenceParameter: {fileID: 0}

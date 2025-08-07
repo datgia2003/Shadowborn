@@ -107,7 +107,7 @@ AnimationClip:
     intParameter: 0
     messageOptions: 0
   - time: 0.13333334
-    functionName: HitPauseFrame
+    functionName: AttackHitboxCheck
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0

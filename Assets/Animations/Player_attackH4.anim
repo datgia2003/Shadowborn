@@ -113,13 +113,13 @@ AnimationClip:
     intParameter: 0
     messageOptions: 0
   - time: 0.28333333
-    functionName: HitPauseFrame
+    functionName: AttackHitboxCheck
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
     intParameter: 0
     messageOptions: 0
-  - time: 0.41666666
+  - time: 0.36666667
     functionName: ComboWindowOpen
     data: 
     objectReferenceParameter: {fileID: 0}
