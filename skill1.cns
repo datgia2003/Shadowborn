@@ -1,0 +1,133 @@
+[Statedef 1000]
+type = s
+movetype = a
+physics = n
+juggle = 1
+velset = 0,0
+ctrl = 0
+anim = stateno
+poweradd = -500
+sprpriority = 2
+
+[State 0]
+type = Helper
+trigger1 = !time
+id = 001+Random%2
+stateno = 900
+pos = 0,-35
+postype = p1
+ownpal=1
+supermovetime = 999999
+pausemovetime = 999999
+
+[State 0]
+Type = PlaySnd
+Trigger1 = !Time
+Value = S950,1
+[State 0]
+type = PlaySnd
+trigger1 = !time
+value = S0,9
+volumescale = 100
+[State 0]
+type = PlaySnd
+trigger1 = !time
+value = S0,9
+volumescale = 100
+
+[state 0]
+type = envshake
+trigger1 = animelem = 2
+time = 10
+ampl = -5
+freq = 25
+
+[State 0]
+type = Afterimage
+Trigger1 = AnimElem = 2
+time = 53
+length = 15
+palbright = 0,0,200
+PalContrast = 50,50,200
+palmul = .0,.0,.20
+paladd = 0,0,-10
+timeGap = 1
+frameGap = 1
+trans = add1
+
+[State 0]
+type = Explod
+trigger1 = animelem = 2
+anim = 6213
+ID = 6213
+pos = 0,-35
+postype = p1
+bindtime = 1
+removetime = -2
+scale = .3,.4
+sprpriority = 1
+vel = -2,0
+removeongethit = 1
+
+[State 0]
+type = Explod
+triggerall = time >= 37
+trigger1 = timemod = 5,0
+anim = 40060
+id = 40060
+pos = 10,0
+postype = p1
+bindtime = 1
+sprpriority = 3
+removetime = -2
+scale = .8,.5
+ownpal = 1
+remappal = 3,11
+
+[state 0]
+type = velset
+trigger1 = time > 37
+x = 14
+
+[state 0]
+type = nothitby
+trigger1 = animelem >= 2
+value = sca, na, np, nt, sa, sp, st, ha, hp, ht
+time = 1
+[State 200]
+type = HitDef
+trigger1 = !movecontact
+attr = S, NA
+animtype = Heavy
+damage = 0
+guardflag = MA
+Hitflag = MAFDE
+pausetime = 0,10
+guardsound = S4,1
+ground.type = High
+ground.slidetime = 12
+ground.hittime  = 15
+ground.velocity = -1
+air.velocity = -1,-1
+
+[State 0]
+type = HitOverride
+triggerall = enemynear,facing != facing
+triggerall = !cond(facing = 1,pos x > enemynear,pos x,pos x < enemynear,pos x)
+triggerall = (!enemynear,ishelper)
+trigger1 = animelem = 4
+attr = SCA,NA       
+stateno = 8000
+forceair = 0
+ignorehitpause = 1
+
+[State 200]
+type = ChangeState
+trigger1 = movehit
+value = 1010
+
+[State 0]
+type = ChangeState
+trigger1 = Time = 90
+value = 117
+ctrl = 1

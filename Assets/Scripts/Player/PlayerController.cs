@@ -33,6 +33,27 @@ public class PlayerController : MonoBehaviour
     // Run state via Shift hold
     bool isRunning;
 
+    // Struct lưu thông tin collider cho từng frame
+    [System.Serializable]
+    public struct ColliderFrameData
+    {
+        public Vector2 offset;
+        public Vector2 size;
+    }
+
+    // Danh sách các animation, mỗi animation là một mảng các frame collider
+    [System.Serializable]
+    public struct AnimationColliderData
+    {
+        [Tooltip("Tên animation để dễ nhận biết trong Inspector")]
+        public string animationName;
+        [Tooltip("Các frame collider cho animation này")]
+        public ColliderFrameData[] frames;
+    }
+
+    [Header("Collider Data Per Animation")]
+    public AnimationColliderData[] animationColliders;
+
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -129,4 +150,25 @@ public class PlayerController : MonoBehaviour
         anim.SetFloat("YVel", rb.velocity.y);
         anim.SetBool("IsRunning", isRunning);
     }
+
+
+
+    // Hàm chỉnh collider theo animation và frame
+    public void SetCharacterCollider(int animationIndex, int frameIndex)
+    {
+        if (animationColliders == null || animationIndex < 0 || animationIndex >= animationColliders.Length) return;
+        var animData = animationColliders[animationIndex];
+        if (animData.frames == null || frameIndex < 0 || frameIndex >= animData.frames.Length) return;
+        var frameData = animData.frames[frameIndex];
+        var box = GetComponent<BoxCollider2D>();
+        if (box != null)
+        {
+            box.offset = frameData.offset;
+            box.size = frameData.size;
+        }
+    }
+
+    // Ví dụ: Animation Event gọi SetCharacterCollider(animationIndex, frameIndex)
+    // Trong Inspector, đặt tên animation rõ ràng để dễ quản lý
+
 }

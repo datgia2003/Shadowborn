@@ -1,18 +1,57 @@
-﻿
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
+
 
 [RequireComponent(typeof(Animator))]
 public class PlayerCombat : MonoBehaviour
 {
+    // ===== FX/Sound Struct & Arrays =====
+    [System.Serializable]
+    public class AttackFX
+    {
+        public GameObject fxPrefab;
+        public Vector3 offset = Vector3.zero; // offset vị trí spawn (áp dụng từ pos trong mugen)
+        public Vector2 scale = Vector2.one;   // scale (áp dụng từ scale trong mugen)
+        public float angle = 0f;              // góc xoay (áp dụng từ angle trong mugen)
+    }
+
+    [Header("Light Attack Punch FX/Sound Array")]
+    public AttackFX[] lightPunchFXs;   // FX đấm cho từng light
+    public AudioClip[] lightPunchSounds;
+    [Header("Light Punch Points (anchor từng đòn)")]
+    public Transform[] punchPointsLight; // Anchor cho từng light punch (L1, L2...)
+    [Header("Light Attack Dust FX/Sound Array")]
+    public AttackFX[] lightDustFXs;    // FX bụi cho từng light
+    public AudioClip[] lightDustSounds;
+    [Header("Light Dust Points (anchor FX bụi từng đòn)")]
+    public Transform[] dustPointsLight; // Anchor cho FX bụi từng light
+
+    [Header("Heavy Attack Punch FX/Sound Array")]
+    public AttackFX[] heavyPunchFXs;   // FX đấm cho từng heavy
+    public AudioClip[] heavyPunchSounds;
+    [Header("Heavy Punch Points (anchor từng đòn)")]
+    public Transform[] punchPointsHeavy; // Anchor cho từng heavy punch (H1, H2...)
+    [Header("Heavy Attack Dust FX/Sound Array")]
+    public AttackFX[] heavyDustFXs;    // FX bụi cho từng heavy
+    public AudioClip[] heavyDustSounds;
+    [Header("Heavy Dust Points (anchor FX bụi từng đòn)")]
+    public Transform[] dustPointsHeavy; // Anchor cho FX bụi từng heavy
+
+    // [Header("Light Attack FX/Sound Array")]
+    // public AttackFX[] lightSwingFXs;    // FX cho từng light combo step
+    // public AudioClip[] lightSwingSounds;
+    // [Header("Heavy Attack FX/Sound Array")]
+    // public AttackFX[] heavySwingFXs;    // FX cho từng heavy combo step
+    // public AudioClip[] heavySwingSounds;
+
     [Header("Light Hitboxes")] public Hitbox[] lightHits;
     [Header("Heavy Hitboxes")] public Hitbox[] heavyHits;
 
-    [Header("FX & SFX")] public GameObject[] fxLightPrefabs;
-    public AudioClip[] sfxLightClips;
-    public GameObject[] fxHeavyPrefabs;
-    public AudioClip[] sfxHeavyClips;
+    // [Header("FX & SFX")] public GameObject[] fxLightPrefabs;
+    // public AudioClip[] sfxLightClips;
+    // public GameObject[] fxHeavyPrefabs;
+    // public AudioClip[] sfxHeavyClips;
 
     [Header("Combo Settings")]
     public float comboResetTime = 0.6f;
@@ -34,18 +73,24 @@ public class PlayerCombat : MonoBehaviour
 
     bool canChain;
     bool comboLocked;
-    public bool isAirAttack = false; // trạng thái đang tấn công (dùng cho anim)
+    bool isAirAttack = false; // trạng thái đang tấn công (dùng cho anim)
     float lastAttackTime;
     float lastComboStartTime;
     float nextComboAllowedTime = 0.4f;
 
-    enum AttackType { None = 0, Light = 1, Heavy = 2 }
+    public enum AttackType { None = 0, Light = 1, Heavy = 2 }
     AttackType currentType = AttackType.None;
     int currentIndex = 0;
     int comboCount = 0;
 
     AttackType bufferedType = AttackType.None;
     float bufferedTime;
+
+
+    [Header("Rock Debris FX Prefab (dùng cho đòn đặc biệt)")]
+    public GameObject rockDebrisPrefab;
+    [Header("Rock Debris Anchor Points (giống dust)")]
+    public Transform[] rockDebrisPoints;
 
     void Awake()
     {
@@ -167,11 +212,11 @@ public class PlayerCombat : MonoBehaviour
         anim.speed = attackSpeed;
 
         Vector2 dir = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
-        float slide = 0.5f;
+        float slide = 1.0f; //dịch nhẹ khi đánh
 
         // Nếu là đòn cuối của light combo thì lướt xa hơn
-        if (type == AttackType.Light && currentIndex == maxLightCombo)
-            slide = 4.0f;
+        // if (type == AttackType.Light && currentIndex == maxLightCombo)
+        //     slide = 4.0f;
 
         // Đòn thứ 4 của heavy attack: hất enemy lên và nhân vật nhảy lên
         if (type == AttackType.Heavy && currentIndex == 4)
@@ -284,21 +329,6 @@ public class PlayerCombat : MonoBehaviour
         foreach (var h in heavyHits) h.gameObject.SetActive(false);
     }
 
-    public void PlayAttackFX()
-    {
-        var arr = (currentType == AttackType.Light) ? fxLightPrefabs : fxHeavyPrefabs;
-        int idx = currentIndex - 1;
-        if (idx >= 0 && idx < arr.Length) Instantiate(arr[idx], transform.position, Quaternion.identity);
-    }
-
-    public void PlayAttackSfx()
-    {
-        var arr = (currentType == AttackType.Light) ? sfxLightClips : sfxHeavyClips;
-        int idx = currentIndex - 1;
-        if (idx >= 0 && idx < arr.Length) audioSource.PlayOneShot(arr[idx]);
-    }
-
-
     // Coroutine hit stop (pause game ngắn)
     IEnumerator HitStopCoroutine()
     {
@@ -310,14 +340,146 @@ public class PlayerCombat : MonoBehaviour
     // Gọi hàm này từ Animation Event để xử lý hiệu ứng phụ (hit stop, FX, SFX...)
     public void AttackHitboxCheck()
     {
-        // Nếu muốn: PlayAttackFX(); PlayAttackSfx();
-        PlayAttackFX();
-        PlayAttackSfx();
+        // Không cần gọi PlayAttackFX/Sfx nữa, đã xử lý trong Hitbox.cs
         // Nếu muốn: Camera shake, v.v.
         // Tạo hit stop (pause game ngắn)
         if (hitStopTime > 0f)
         {
             StartCoroutine(HitStopCoroutine());
+        }
+    }
+
+    // Gọi từ Animation Event: truyền AttackType (Light/Heavy) và index (0 = L1/H1, 1 = L2/H2, ...)
+    // public void PlaySwingFXByTypeAndIndex(AttackType type, int idx)
+    // {
+    //     AttackFX[] fxArr = (type == AttackType.Light) ? lightSwingFXs : heavySwingFXs;
+    //     AudioClip[] sndArr = (type == AttackType.Light) ? lightSwingSounds : heavySwingSounds;
+    //     if (fxArr != null && idx >= 0 && idx < fxArr.Length && fxArr[idx] != null && fxArr[idx].fxPrefab != null)
+    //     {
+    //         var fx = fxArr[idx];
+    //         FXSpawner.Spawn(fx.fxPrefab, transform.position + fx.offset, fx.scale, fx.angle);
+    //     }
+    //     if (sndArr != null && idx >= 0 && idx < sndArr.Length && sndArr[idx] != null && audioSource != null)
+    //         audioSource.PlayOneShot(sndArr[idx]);
+    // }
+
+    // ===== FX/Sound Callbacks for Animation Event =====
+    // Gọi từ Animation Event: FX/sound đấm cho từng light step
+    public void PlayLightPunchFX(int idx)
+    {
+        if (lightPunchFXs != null && idx >= 0 && idx < lightPunchFXs.Length && lightPunchFXs[idx].fxPrefab != null)
+        {
+            var fx = lightPunchFXs[idx];
+            Vector3 spawnPos = (punchPointsLight != null && idx < punchPointsLight.Length && punchPointsLight[idx] != null)
+                ? punchPointsLight[idx].position + fx.offset
+                : transform.position + fx.offset;
+            bool flipX = (transform.localScale.x < 0);
+            FXSpawner.Spawn(fx.fxPrefab, spawnPos, fx.scale, fx.angle, flipX);
+        }
+        if (lightPunchSounds != null && idx >= 0 && idx < lightPunchSounds.Length && lightPunchSounds[idx] != null && audioSource != null)
+            audioSource.PlayOneShot(lightPunchSounds[idx]);
+    }
+
+    // Gọi từ Animation Event: FX/sound bụi cho từng light step
+    public void PlayLightDustFX(int idx)
+    {
+        if (lightDustFXs != null && idx >= 0 && idx < lightDustFXs.Length && lightDustFXs[idx].fxPrefab != null)
+        {
+            var fx = lightDustFXs[idx];
+            bool flipX = (transform.localScale.x < 0);
+            Vector3 offset = fx.offset;
+            Vector2 fxScale = fx.scale;
+            if (flipX)
+            {
+                offset.x *= -1;
+                fxScale.x *= -1;
+            }
+            Vector3 spawnPos = (dustPointsLight != null && idx < dustPointsLight.Length && dustPointsLight[idx] != null)
+                ? dustPointsLight[idx].position + offset
+                : transform.position + offset;
+            FXSpawner.Spawn(fx.fxPrefab, spawnPos, fxScale, fx.angle, flipX);
+        }
+        if (lightDustSounds != null && idx >= 0 && idx < lightDustSounds.Length && lightDustSounds[idx] != null && audioSource != null)
+            audioSource.PlayOneShot(lightDustSounds[idx]);
+    }
+
+    // Gọi từ Animation Event: FX/sound đấm cho từng heavy step
+    public void PlayHeavyPunchFX(int idx)
+    {
+        if (heavyPunchFXs != null && idx >= 0 && idx < heavyPunchFXs.Length && heavyPunchFXs[idx].fxPrefab != null)
+        {
+            var fx = heavyPunchFXs[idx];
+            bool flipX = (transform.localScale.x < 0);
+            Vector3 offset = fx.offset;
+            Vector2 fxScale = fx.scale;
+            if (flipX)
+            {
+                offset.x *= -1;
+                fxScale.x *= -1;
+            }
+            Vector3 spawnPos = (punchPointsHeavy != null && idx < punchPointsHeavy.Length && punchPointsHeavy[idx] != null)
+                ? punchPointsHeavy[idx].position + offset
+                : transform.position + offset;
+            FXSpawner.Spawn(fx.fxPrefab, spawnPos, fxScale, fx.angle, flipX);
+        }
+        if (heavyPunchSounds != null && idx >= 0 && idx < heavyPunchSounds.Length && heavyPunchSounds[idx] != null && audioSource != null)
+            audioSource.PlayOneShot(heavyPunchSounds[idx]);
+    }
+
+    // Gọi từ Animation Event: FX/sound bụi cho từng heavy step
+    public void PlayHeavyDustFX(int idx)
+    {
+        if (heavyDustFXs != null && idx >= 0 && idx < heavyDustFXs.Length && heavyDustFXs[idx].fxPrefab != null)
+        {
+            var fx = heavyDustFXs[idx];
+            bool flipX = (transform.localScale.x < 0);
+            Vector3 offset = fx.offset;
+            Vector2 fxScale = fx.scale;
+            if (flipX)
+            {
+                offset.x *= -1;
+                fxScale.x *= -1;
+            }
+            Vector3 spawnPos = (dustPointsHeavy != null && idx < dustPointsHeavy.Length && dustPointsHeavy[idx] != null)
+                ? dustPointsHeavy[idx].position + offset
+                : transform.position + offset;
+            FXSpawner.Spawn(fx.fxPrefab, spawnPos, fxScale, fx.angle, flipX);
+        }
+        if (heavyDustSounds != null && idx >= 0 && idx < heavyDustSounds.Length && heavyDustSounds[idx] != null && audioSource != null)
+            audioSource.PlayOneShot(heavyDustSounds[idx]);
+    }
+
+
+    // Gọi từ Animation Event: spawn hiệu ứng đá văng (rock debris) tại anchor point riêng (rockDebrisPoints)
+    // Nếu không truyền idx, mặc định là 0
+    public void PlayRockDebrisFX(int idx = 0)
+    {
+        if (rockDebrisPrefab == null) return;
+        bool flipX = (transform.localScale.x < 0);
+        Vector3 basePos;
+        if (rockDebrisPoints != null && idx >= 0 && idx < rockDebrisPoints.Length && rockDebrisPoints[idx] != null)
+            basePos = rockDebrisPoints[idx].position;
+        else
+            basePos = transform.position;
+
+        int rockCount = Random.Range(5, 9); // 5-8 rocks
+        for (int i = 0; i < rockCount; i++)
+        {
+            // Random offset for each rock
+            Vector3 offset = new Vector3(
+                Random.Range(-0.3f, 0.3f),
+                Random.Range(0f, 0.25f),
+                0f);
+            var fx = Instantiate(rockDebrisPrefab, basePos + offset, Quaternion.identity);
+            fx.GetComponent<RockDebris>()?.Init(null); // scale mặc định bên RockDebris
+            if (flipX)
+            {
+                var sr = fx.GetComponentInChildren<SpriteRenderer>();
+                if (sr != null) sr.flipX = !sr.flipX;
+                var local = fx.transform.localScale;
+                local.x *= -1;
+                fx.transform.localScale = local;
+            }
         }
     }
 }

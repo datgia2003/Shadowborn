@@ -1,0 +1,439 @@
+;Hit
+[statedef 98010]
+type = u
+anim = 6
+
+[state 0]
+type = remappal
+trigger1 = 1
+source = 3, 0
+dest = 3, const(size.head.pos.y)
+
+[state 0]
+type = helper
+triggerall = enemynear, stateno = [120, 154]
+trigger1 = time = 0
+stateno = 98000
+id = 98000
+pos = 10, 0
+postype = p1
+ownpal = 1
+size.xscale = const(size.xscale) * .4
+size.yscale = const(size.yscale) * .4
+ignorehitpause = 1
+persistent = 0
+
+;=================
+; Normal Spark
+;=================
+[state 0]
+type = explod
+triggerall = (enemynear, stateno != [120, 154])
+triggerall = (ishelper(001)) || (ishelper(020))
+trigger1 = time = 0
+anim = 30330
+id = stateno
+pos = 0, 0
+postype = p1
+facing = 1
+bindtime = -1
+removetime = -2
+sprpriority = 10
+scale = const(size.xscale) * .425, const(size.yscale) * .425
+angle = const(size.head.pos.x)
+removeongethit = 1
+ignorehitpause = 1
+supermovetime = 999
+pausemovetime = 999
+[state 0]
+type = explod
+triggerall = (enemynear, stateno != [120, 154])
+triggerall = (ishelper(001)) || (ishelper(020))
+trigger1 = time = 0
+anim = 30330
+id = stateno
+pos = 0, 0
+postype = p1
+facing = 1
+bindtime = -1
+removetime = -2
+sprpriority = 9
+scale = const(size.xscale) * .425, const(size.yscale) * .425
+angle = const(size.head.pos.x)
+ownpal = 1
+remappal = 3, 0
+removeongethit = 1
+ignorehitpause = 1
+supermovetime = 999
+pausemovetime = 999
+trans = sub
+
+[state 0]
+type = explod
+triggerall = (enemynear, stateno != [120, 154])
+triggerall = (ishelper(001)) || (ishelper(020))
+trigger1 = time = 0
+anim = 30333;30332
+id = stateno
+pos = 0, 0
+postype = p1
+facing = 1
+bindtime = -1
+removetime = -2
+sprpriority = 14
+scale = const(size.xscale) * .5, const(size.yscale) * .425
+angle = const(size.head.pos.x)
+removeongethit = 1
+ignorehitpause = 1
+supermovetime = 999
+pausemovetime = 999
+[state 0]
+type = explod
+triggerall = (enemynear, stateno != [120, 154])
+triggerall = (ishelper(001)) || (ishelper(020))
+trigger1 = time = 0
+anim = 30333;30332
+id = stateno
+pos = 0, 0
+postype = p1
+facing = 1
+bindtime = -1
+removetime = -2
+sprpriority = 13
+scale = const(size.xscale) * .5, const(size.yscale) * .425
+angle = const(size.head.pos.x)
+ownpal = 1
+remappal = 3, 0
+removeongethit = 1
+ignorehitpause = 1
+supermovetime = 999
+pausemovetime = 999
+trans = sub
+
+[state 0]
+type = explod
+triggerall = (enemynear, stateno != [120, 154])
+triggerall = (ishelper(001)) || (ishelper(020))
+trigger1 = time = 0
+anim = 30333
+id = stateno
+pos = 0, 0
+postype = p1
+facing = 1
+bindtime = -1
+removetime = -2
+sprpriority = 14
+scale = const(size.xscale) * .2, const(size.yscale) * .2
+angle = const(size.head.pos.x)
+removeongethit = 1
+ignorehitpause = 1
+supermovetime = 999
+pausemovetime = 999
+[state 0]
+type = explod
+triggerall = (enemynear, stateno != [120, 154])
+triggerall = (ishelper(001)) || (ishelper(020))
+trigger1 = time = 0
+anim = 30333
+id = stateno
+pos = 0, 0
+postype = p1
+facing = 1
+bindtime = -1
+removetime = -2
+sprpriority = 13
+scale = const(size.xscale) * .2, const(size.yscale) * .2
+angle = const(size.head.pos.x)
+ownpal = 1
+remappal = 3, 0
+removeongethit = 1
+ignorehitpause = 1
+supermovetime = 999
+pausemovetime = 999
+trans = sub
+
+;=================
+; Slash Spark
+;=================
+[state 0]
+type = explod
+triggerall = (enemynear, stateno != [120, 154])
+triggerall = (ishelper(011)) || (ishelper(021))
+trigger1 = time = 0
+anim = 30315
+id = stateno
+pos = 0, 0
+postype = p1
+facing = 1
+bindtime = -1
+removetime = -2
+sprpriority = 10
+scale = const(size.xscale) * .35, const(size.yscale) * .35
+angle = const(size.head.pos.x)
+removeongethit = 1
+ignorehitpause = 1
+supermovetime = 999
+pausemovetime = 999
+
+[state 0]
+type = explod
+triggerall = (enemynear, stateno != [120, 154])
+triggerall = (ishelper(011)) || (ishelper(021))
+trigger1 = time = 0
+anim = 30304
+id = stateno
+pos = 0, 0
+postype = p1
+facing = 1
+bindtime = -1
+removetime = -2
+sprpriority = 9
+scale = const(size.xscale) * .2, const(size.yscale) * .2
+angle = const(size.head.pos.x)
+removeongethit = 1
+ignorehitpause = 1
+supermovetime = 999
+pausemovetime = 999
+[state 0]
+type = explod
+triggerall = (enemynear, stateno != [120, 154])
+triggerall = (ishelper(011)) || (ishelper(021))
+trigger1 = time = 0
+anim = 30304
+id = stateno
+pos = 0, 0
+postype = p1
+facing = 1
+bindtime = -1
+removetime = -2
+sprpriority = 0
+scale = const(size.xscale) * .2, const(size.yscale) * .2
+angle = const(size.head.pos.x)
+ownpal = 1
+remappal = 3, 0
+removeongethit = 1
+ignorehitpause = 1
+supermovetime = 999
+pausemovetime = 999
+trans = sub
+
+[state 0]
+type = explod
+triggerall = (enemynear, stateno != [120, 154])
+triggerall = (ishelper(011)) || (ishelper(021))
+trigger1 = time = 0
+anim = 30304
+id = stateno
+pos = 0, 0
+postype = p1
+facing = 1
+bindtime = -1
+removetime = -2
+sprpriority = 8
+scale = const(size.xscale) * .125, const(size.yscale) * .125
+angle = (const(size.head.pos.x) + const(size.head.pos.x)) * 2
+removeongethit = 1
+ignorehitpause = 1
+supermovetime = 999
+pausemovetime = 999
+[state 0]
+type = explod
+triggerall = (enemynear, stateno != [120, 154])
+triggerall = (ishelper(011)) || (ishelper(021))
+trigger1 = time = 0
+anim = 30304
+id = stateno
+pos = 0, 0
+postype = p1
+facing = 1
+bindtime = -1
+removetime = -2
+sprpriority = 0
+scale = const(size.xscale) * .125, const(size.yscale) * .125
+angle = (const(size.head.pos.x) + const(size.head.pos.x)) * 2
+ownpal = 1
+remappal = 3, 0
+removeongethit = 1
+ignorehitpause = 1
+supermovetime = 999
+pausemovetime = 999
+trans = sub
+
+[state 0]
+type = explod
+triggerall = (enemynear, stateno != [120, 154])
+triggerall = (ishelper(011)) || (ishelper(021))
+trigger1 = time = 0
+anim = 30313
+id = stateno
+pos = 0, 0
+postype = p1
+facing = 1
+bindtime = -1
+removetime = -2
+sprpriority = 8
+scale = const(size.xscale) * .3, const(size.yscale) * .3
+angle = const(size.head.pos.x)
+removeongethit = 1
+ignorehitpause = 1
+supermovetime = 999
+pausemovetime = 999
+[state 0]
+type = explod
+triggerall = (enemynear, stateno != [120, 154])
+triggerall = (ishelper(011)) || (ishelper(021))
+trigger1 = time = 0
+anim = 30313
+id = stateno
+pos = 0, 0
+postype = p1
+facing = 1
+bindtime = -1
+removetime = -2
+sprpriority = 0
+scale = const(size.xscale) * .3, const(size.yscale) * .3
+angle = const(size.head.pos.x)
+ownpal = 1
+remappal = 3, 0
+removeongethit = 1
+ignorehitpause = 1
+supermovetime = 999
+pausemovetime = 999
+trans = sub
+
+[state 0]
+type = explod
+triggerall = (enemynear, stateno != [120, 154])
+triggerall = (ishelper(011)) || (ishelper(021))
+trigger1 = time = 0
+anim = 30305
+id = stateno
+pos = 0, 0
+postype = p1
+facing = 1
+bindtime = -1
+removetime = -2
+sprpriority = 7
+scale = const(size.xscale) * .3, const(size.yscale) * .3
+angle = const(size.head.pos.x)
+removeongethit = 1
+ignorehitpause = 1
+supermovetime = 999
+pausemovetime = 999
+[state 0]
+type = explod
+triggerall = (enemynear, stateno != [120, 154])
+triggerall = (ishelper(011)) || (ishelper(021))
+trigger1 = time = 0
+anim = 30305
+id = stateno
+pos = 0, 0
+postype = p1
+facing = 1
+bindtime = -1
+removetime = -2
+sprpriority = 0
+scale = const(size.xscale) * .3, const(size.yscale) * .3
+angle = const(size.head.pos.x)
+ownpal = 1
+remappal = 3, 0
+removeongethit = 1
+ignorehitpause = 1
+supermovetime = 999
+pausemovetime = 999
+trans = sub
+
+[state 0]
+type = explod
+triggerall = (enemynear, stateno != [120, 154])
+triggerall = (ishelper(011)) || (ishelper(021))
+trigger1 = time = 0
+anim = 30303
+id = stateno
+pos = 0, 0
+postype = p1
+facing = 1
+bindtime = -1
+removetime = -2
+sprpriority = 6
+scale = const(size.xscale) * .25, const(size.yscale) * .25
+angle = (const(size.head.pos.x) - const(size.head.pos.x))
+removeongethit = 1
+ignorehitpause = 1
+supermovetime = 999
+pausemovetime = 999
+[state 0]
+type = explod
+triggerall = (enemynear, stateno != [120, 154])
+triggerall = (ishelper(011)) || (ishelper(021))
+trigger1 = time = 0
+anim = 30303
+id = stateno
+pos = 0, 0
+postype = p1
+facing = 1
+bindtime = -1
+removetime = -2
+sprpriority = 0
+scale = const(size.xscale) * .25, const(size.yscale) * .25
+angle = (const(size.head.pos.x) - const(size.head.pos.x))
+ownpal = 1
+remappal = 3, 0
+removeongethit = 1
+ignorehitpause = 1
+supermovetime = 999
+pausemovetime = 999
+trans = sub
+
+;=================
+; Blood Spark
+;=================
+[state 0]
+type = explod
+triggerall = (enemynear, stateno != [120, 154])
+triggerall = (ishelper(020)) || (ishelper(021))
+trigger1 = time = 0
+anim = 30321
+id = stateno
+pos = 0, 0
+postype = p1
+facing = 1
+bindtime = -1
+removetime = -2
+sprpriority = 7
+scale = const(size.xscale) * .3, const(size.yscale) * .3
+angle = 0
+ownpal = 1
+remappal = 3, 2
+removeongethit = 1
+ignorehitpause = 1
+supermovetime = 999
+pausemovetime = 999
+[state 0]
+type = explod
+triggerall = (enemynear, stateno != [120, 154])
+triggerall = (ishelper(020)) || (ishelper(021))
+trigger1 = time = 0
+anim = 30321
+id = stateno
+pos = 0, 0
+postype = p1
+facing = 1
+bindtime = -1
+removetime = -2
+sprpriority = 6
+scale = const(size.xscale) * .3, const(size.yscale) * .3
+angle = 0
+ownpal = 1
+remappal = 3, 0
+removeongethit = 1
+ignorehitpause = 1
+supermovetime = 999
+pausemovetime = 999
+trans = sub
+
+[state 0]
+type = destroyself
+trigger1 = !numexplod(stateno)
+ignorehitpause = 1
+removeexplods = 1

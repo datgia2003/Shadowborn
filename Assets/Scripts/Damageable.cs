@@ -63,8 +63,8 @@ public class Damageable : MonoBehaviour, IDamageable
             // Disable AI khi bị stun/hit pull
             SetAIScriptsEnabled(false);
 
-            // Hit pull (kéo dính về attacker) - dùng coroutine để kéo rõ ràng hơn
-            if (attacker != null && HitPullStrength > 0f)
+            // Hit pull (kéo dính về attacker) - chỉ áp dụng nếu attacker là player
+            if (attacker != null && HitPullStrength > 0f && attacker.CompareTag("Player"))
             {
                 StopCoroutine("HitPullCoroutine"); // tránh kéo chồng nhiều lần
                 StartCoroutine(HitPullCoroutine(attacker));
