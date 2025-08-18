@@ -22,13 +22,9 @@ public class FXSpawner : MonoBehaviour
     /// <param name="flipX">Nếu true, đảo chiều offset.x (dùng cho player quay trái)</param>
     public static void Spawn(GameObject fxPrefab, Vector3 position, Vector2? scale = null, float angle = 0f, bool flipX = false)
     {
-        if (fxPrefab == null)
-        {
-            Debug.LogWarning("[FXSpawner] fxPrefab is null, abort spawn.");
-            return;
-        }
+        if (fxPrefab == null) { return; }
         if (flipX) angle *= -1; // Đảo dấu góc nếu lật hướng
-        Debug.Log($"[FXSpawner] Spawn {fxPrefab.name} at {position} scale {(scale.HasValue ? scale.Value.ToString() : "(prefab)")} angle {angle} flipX={flipX}");
+
 
         var fx = Instantiate(fxPrefab, position, Quaternion.Euler(0, 0, angle));
         if (scale.HasValue)
@@ -51,12 +47,10 @@ public class FXSpawner : MonoBehaviour
         {
             AnimatorClipInfo[] clips = anim.GetCurrentAnimatorClipInfo(0);
             float clipLength = (clips.Length > 0) ? clips[0].clip.length : 1f;
-            Debug.Log($"[FXSpawner] {fxPrefab.name} has Animator, will destroy after {clipLength}s");
             Destroy(fx, clipLength);
         }
         else
         {
-            Debug.Log($"[FXSpawner] {fxPrefab.name} has NO Animator, will destroy after 1s");
             Destroy(fx, 1f);
         }
     }

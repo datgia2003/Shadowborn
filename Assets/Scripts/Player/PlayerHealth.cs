@@ -47,7 +47,6 @@ public class PlayerHealth : MonoBehaviour
     void Die()
     {
         anim?.SetTrigger("Die");
-        Debug.Log("Player died.");
         // TODO: Disable movement, trigger game over, etc.
     }
 

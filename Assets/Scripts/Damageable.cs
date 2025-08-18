@@ -49,7 +49,6 @@ public class Damageable : MonoBehaviour, IDamageable
         if (!IsAlive) return;
 
         CurrentHP -= dmg;
-        Debug.Log($"{name} took {dmg} dmg → HP {CurrentHP}/{MaxHP}");
 
         if (CurrentHP > 0f)
         {
@@ -163,7 +162,6 @@ public class Damageable : MonoBehaviour, IDamageable
             if (script != null)
             {
                 script.enabled = enabled;
-                Debug.Log($"[Damageable] {(enabled ? "Enable" : "Disable")} AI script: {script.GetType().Name} on {name}");
             }
         }
         // Khi disable AI thì dừng hẳn vật lý
@@ -175,7 +173,7 @@ public class Damageable : MonoBehaviour, IDamageable
 
     void OnDeath()
     {
-        Debug.Log($"{name} died");
+
 
         // Đảm bảo Animator luôn enable để play Die
         if (animator != null)
