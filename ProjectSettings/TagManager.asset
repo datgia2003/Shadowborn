@@ -17,8 +17,8 @@ TagManager:
   - Player
   - Ground
   - Hitbox_Player
-  - 
-  - 
+  - ProjectileLayer
+  - Summoner
   - 
   - 
   - 
@@ -48,6 +48,9 @@ TagManager:
     locked: 0
   - name: FX_Behind
     uniqueID: 3770083879
+    locked: 0
+  - name: Summoner
+    uniqueID: 3145988645
     locked: 0
   - name: Player
     uniqueID: 379524057

@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(Rigidbody2D))]
-[RequireComponent(typeof(Animator))]
+// [RequireComponent(typeof(Animator))]
 public class PlayerController : MonoBehaviour
 {
     [Header("Movement")]
@@ -21,7 +21,7 @@ public class PlayerController : MonoBehaviour
     public bool canMove = true;    // Cho phép di chuyển và nhảy ngoài combat
 
     Rigidbody2D rb;
-    Animator anim;
+    public Animator anim;
     Vector2 moveInput;
     public bool isGrounded;
 
@@ -57,7 +57,7 @@ public class PlayerController : MonoBehaviour
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        anim = GetComponent<Animator>();
+        // anim = GetComponent<Animator>();
     }
 
     void Update()
