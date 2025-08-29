@@ -21901,6 +21901,7 @@ GameObject:
   - component: {fileID: 190640144}
   - component: {fileID: 190640145}
   - component: {fileID: 190640146}
+  - component: {fileID: 190640147}
   m_Layer: 7
   m_Name: Player
   m_TagString: Player
@@ -22514,6 +22515,194 @@ MonoBehaviour:
   voiceSound: {fileID: 8300000, guid: 062f50e3cfcc9bf4da0782c851b860ec, type: 3}
   audioSource: {fileID: 190640145}
   spawnPoint: {fileID: 190640137}
+--- !u!114 &190640147
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 190640132}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ca6a11361ddbe04698085b316853696, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  animator: {fileID: 190640138}
+  rb: {fileID: 190640133}
+  audioSource: {fileID: 190640145}
+  voiceSource: {fileID: 190640145}
+  camShake: {fileID: 519420034}
+  fxSpawnPoint: {fileID: 190640137}
+  mainCamera: {fileID: 519420031}
+  virtualCamera: {fileID: 367639249}
+  cameraZoomMultiplier: 2
+  cameraZoomSpeed: 5
+  ultimateWalkSpeed: 5
+  voiceIntro: {fileID: 8300000, guid: 536d972be3b99c246a4a7ba2404823fd, type: 3}
+  voiceDash: {fileID: 8300000, guid: 048181bb7035ff947a6b00458eca6c22, type: 3}
+  sndImpact1: {fileID: 8300000, guid: 5337e61bc1d9b2a49a9127bdc6ee5fb0, type: 3}
+  sndImpact2: {fileID: 8300000, guid: 5a82ed09699212c4bb30d09bcd626d4e, type: 3}
+  sndImpact3: {fileID: 8300000, guid: 0f1fca3e232c9554eaebbf932b1378e4, type: 3}
+  sndImpact4: {fileID: 8300000, guid: 0a61805e2aeae8b41bdc34a3771bdecb, type: 3}
+  sndSlash1: {fileID: 8300000, guid: f69c45f68c308f44096ab04b823443fc, type: 3}
+  sndSlash2: {fileID: 8300000, guid: 6720ccca54c509848a9860db84cf8b15, type: 3}
+  sndAmbient1: {fileID: 8300000, guid: 364e165a8a191bd4c8fe677b066487e2, type: 3}
+  sndAmbient2: {fileID: 8300000, guid: 4f7bdae5da600a741b13bebe68f1b075, type: 3}
+  fxPortrait:
+    prefab: {fileID: 0}
+    offset: {x: 0, y: -1.2, z: 0}
+    scale: {x: 1, y: 1, z: 1}
+    rotation: 0
+    lifetime: 1.2
+    followPlayer: 0
+  fxColorCycle:
+    prefab: {fileID: 0}
+    offset: {x: 0, y: 0, z: 0}
+    scale: {x: 1, y: 1, z: 1}
+    rotation: 0
+    lifetime: 1.7
+    followPlayer: 0
+  fxAcademy:
+    prefab: {fileID: 0}
+    offset: {x: -0.2, y: -0.6, z: 0}
+    scale: {x: 0.3, y: 0.3, z: 0.3}
+    rotation: 0
+    lifetime: 1.2
+    followPlayer: 0
+  fxIntroGround:
+    prefab: {fileID: 0}
+    offset: {x: 0, y: 0.03, z: 0}
+    scale: {x: 0.3, y: 0.4, z: 1}
+    rotation: 0
+    lifetime: 1.7
+    followPlayer: 0
+  fxIntroRing:
+    prefab: {fileID: 0}
+    offset: {x: 0, y: -0.03, z: 0}
+    scale: {x: 0.6, y: 0.3, z: 1}
+    rotation: 0
+    lifetime: 1.7
+    followPlayer: 0
+  fxDashBackground:
+    prefab: {fileID: 2247704201069343580, guid: e5cb1f7ddd2ae2a47aed7842101117de, type: 3}
+    offset: {x: 0, y: 0, z: 0}
+    scale: {x: 1.5, y: 1, z: 1}
+    rotation: 0
+    lifetime: 2
+    followPlayer: 0
+  fxDashTrail:
+    prefab: {fileID: 0}
+    offset: {x: 0, y: 0, z: 0}
+    scale: {x: 1, y: 1, z: 1}
+    rotation: 0
+    lifetime: 0.8
+    followPlayer: 1
+  fxBackOverlay1:
+    prefab: {fileID: 6868569581171968386, guid: 716068d00f041ea4e87e246c24020f26, type: 3}
+    offset: {x: 0, y: 0, z: 0}
+    scale: {x: 0.63, y: 0.63, z: 0.63}
+    rotation: 0
+    lifetime: 5.5
+    followPlayer: 0
+  fxBackOverlay2:
+    prefab: {fileID: 8452697253278470626, guid: a36f206df9271304faa393c0993afdbe, type: 3}
+    offset: {x: 0, y: 0, z: 0}
+    scale: {x: 0.63, y: 0.63, z: 0.63}
+    rotation: 0
+    lifetime: 5
+    followPlayer: 0
+  fxBackOverlay3:
+    prefab: {fileID: 0}
+    offset: {x: 0, y: 0, z: 0}
+    scale: {x: 0.63, y: 0.63, z: 0.63}
+    rotation: 0
+    lifetime: 5
+    followPlayer: 0
+  fxWeaponGlow1:
+    prefab: {fileID: 7474514872619521803, guid: 012e914c0348c4145b63cec5b402e607, type: 3}
+    offset: {x: -0.1, y: -0.4, z: 0}
+    scale: {x: 0.8, y: 0.3, z: 1}
+    rotation: 0
+    lifetime: 3
+    followPlayer: 1
+  fxWeaponGlow2:
+    prefab: {fileID: 7474514872619521803, guid: 012e914c0348c4145b63cec5b402e607, type: 3}
+    offset: {x: 0.17, y: -0.33, z: 0}
+    scale: {x: 0.8, y: 0.1, z: 1}
+    rotation: 0
+    lifetime: 3
+    followPlayer: 1
+  fxPlayerAura:
+    prefab: {fileID: 8265470365764999843, guid: 4eae0eedf433fbc40b54abd22cb29966, type: 3}
+    offset: {x: 0, y: 0, z: 0}
+    scale: {x: 0.5, y: 0.5, z: 0.5}
+    rotation: 0
+    lifetime: 3
+    followPlayer: 0
+  fxBeam1:
+    prefab: {fileID: 6932967266551932717, guid: 0963b99ff44cdce4fb8d41fdd4dc5ac0, type: 3}
+    offset: {x: 0.2, y: 3, z: 0}
+    scale: {x: 1.2, y: 1, z: 1}
+    rotation: -10
+    lifetime: 1
+    followPlayer: 0
+  fxBeam2:
+    prefab: {fileID: 6765657430163405619, guid: f08705d6c58f4ca4ab9f95c51a5f454d, type: 3}
+    offset: {x: 0.2, y: 3, z: 0}
+    scale: {x: 0.3, y: 0.9, z: 1}
+    rotation: -10
+    lifetime: 1
+    followPlayer: 0
+  fxSlash:
+    prefab: {fileID: 6940831976410032995, guid: 29565ecd9b478c140a5178325ea5247c, type: 3}
+    offset: {x: 0, y: 0, z: 0}
+    scale: {x: 0.4, y: 0.4, z: 0.4}
+    rotation: 0
+    lifetime: 1
+    followPlayer: 0
+  fxExplosion:
+    prefab: {fileID: 3270554313409712774, guid: 059c59af5b46b0d4ebc07d6e50597b7d, type: 3}
+    offset: {x: 0, y: 0, z: 0}
+    scale: {x: 0.2, y: 0.2, z: 0.2}
+    rotation: 0
+    lifetime: 2.2
+    followPlayer: 0
+  fxHitSpark:
+    prefab: {fileID: 0}
+    offset: {x: 0, y: 0.5, z: 0}
+    scale: {x: 0.5, y: 0.5, z: 0.5}
+    rotation: 0
+    lifetime: 0.3
+    followPlayer: 0
+  fxGroundImpact:
+    prefab: {fileID: 0}
+    offset: {x: 0, y: -0.5, z: 0}
+    scale: {x: 0.8, y: 0.8, z: 0.8}
+    rotation: 0
+    lifetime: 1
+    followPlayer: 0
+  dashDistance: 8
+  dashDuration: 0.3
+  totalDamage: 315
+  hitCount: 5
+  enemyLayers:
+    serializedVersion: 2
+    m_Bits: 64
+  hitRadius: 2
+  activationDistance: 4
+  makeInvincible: 1
+  playerCollider: {fileID: 0}
+  invincibleLayer: 8
+  originalLayer: 0
+  ultimateAnimationName: Ultimate
+  ultimateP2AnimationName: Ultimate_p2
+  requireGrounded: 1
+  requiresTarget: 1
+  maxTargetDistance: 10
+  introDuration: 1.2
+  dashPhaseDuration: 0.5
+  setupDuration: 1
+  attackDuration: 4
 --- !u!1 &226504951
 GameObject:
   m_ObjectHideFlags: 0
