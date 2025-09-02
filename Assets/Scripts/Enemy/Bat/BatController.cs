@@ -141,6 +141,19 @@ public class BatController : MonoBehaviour
         currentState = State.Dead;
         anim.SetTrigger("Die");
         rb.velocity = Vector2.zero;
+
+        // Award experience to player
+        var experienceSystem = FindObjectOfType<ExperienceSystem>();
+        if (experienceSystem != null)
+        {
+            experienceSystem.GainExpFromEnemy("bat");
+            Debug.Log("💀 Bat defeated → +50 EXP awarded to player");
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ ExperienceSystem not found - no EXP awarded");
+        }
+
         Destroy(gameObject, 1.5f); // Cho animation chết
     }
 
@@ -152,19 +165,32 @@ public class BatController : MonoBehaviour
         Collider2D hit = Physics2D.OverlapCircle(attackPoint.position, 1f, playerLayer);
         if (hit != null)
         {
-            // Ưu tiên gọi Damageable nếu có (để có hiệu ứng hit pull, knockback)
+            Debug.Log($"🦇 Bat hit detected: {hit.name} with damage {damage}");
+
+            // Try PlayerResources first (primary system)
+            PlayerResources playerRes = hit.GetComponent<PlayerResources>();
+            if (playerRes != null)
+            {
+                playerRes.TakeDamage(damage);
+                Debug.Log($"✅ Applied {damage} damage to PlayerResources");
+                return;
+            }
+
+            // Try Damageable as backup
             Damageable dmg = hit.GetComponent<Damageable>();
             if (dmg != null)
             {
                 Vector2 dir = ((Vector2)hit.transform.position - (Vector2)attackPoint.position).normalized;
                 dmg.TakeHit(damage, dir, this.transform);
+                Debug.Log($"✅ Applied {damage} damage to Damageable");
+                return;
             }
-            else
-            {
-                // Nếu không có Damageable thì gọi PlayerHealth như cũ
-                PlayerHealth hp = hit.GetComponent<PlayerHealth>();
-                hp?.TakeDamage(damage);
-            }
+
+            Debug.LogWarning($"❌ No damage component found on {hit.name}!");
+        }
+        else
+        {
+            Debug.Log($"🦇 Bat attack missed - no player in range");
         }
     }
 

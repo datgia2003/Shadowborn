@@ -261,8 +261,10 @@ public class TruthMultilateUltimate : MonoBehaviour
     }
 
     /// <summary>
-    /// Input System callback - Ultimate activation
+    /// ❌ DISABLED: Direct input bypass - Skills should go through UI system only!
+    /// This method was causing skills to execute without mana/cooldown checks
     /// </summary>
+    /*
     public void OnUltimate(InputValue value)
     {
         if (value.isPressed && !isUltimateActive)
@@ -272,6 +274,31 @@ public class TruthMultilateUltimate : MonoBehaviour
 
             StartUltimate();
         }
+    }
+    */
+
+    /// <summary>
+    /// Public method for UI system to trigger the skill
+    /// </summary>
+    public void PlaySkill()
+    {
+        if (!isUltimateActive)
+        {
+            // Check requirements (excluding mana - already checked by UI system)
+            if (CanActivateUltimate())
+            {
+                StartUltimate();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Public method for UI system to check if skill can be used BEFORE consuming mana/cooldown
+    /// </summary>
+    public bool CanUseSkill()
+    {
+        if (isUltimateActive) return false;
+        return CanActivateUltimate();
     }
 
     /// <summary>

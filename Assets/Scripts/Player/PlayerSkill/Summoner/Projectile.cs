@@ -395,11 +395,11 @@ public class Projectile : MonoBehaviour
             return;
         }
 
-        // Try PlayerHealth (if projectile somehow hits player)
-        var playerHealth = enemy.GetComponent<PlayerHealth>();
-        if (playerHealth != null)
+        // Try PlayerResources (if projectile somehow hits player)
+        var playerResources = enemy.GetComponent<PlayerResources>();
+        if (playerResources != null)
         {
-            playerHealth.TakeDamage(damageInt);
+            playerResources.TakeDamage(damageInt);
             return;
         }
 

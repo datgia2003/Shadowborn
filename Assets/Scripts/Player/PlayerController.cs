@@ -95,9 +95,24 @@ public class PlayerController : MonoBehaviour
         jumpBufferTimer = jumpBufferDuration;
     }
 
+    // ❌ DISABLED: Direct input bypass - Dodge should go through UI system only!
+    // This method was causing dodge to execute without mana/cooldown checks
+    /*
     void OnDodge(InputValue v)
     {
         if (!canMove || !v.isPressed) return;
+        // Trigger dodge animation / perfect evasion logic
+        anim.SetTrigger("DodgeTrigger");
+        // TODO: add invincibility frames and movement impulse
+    }
+    */
+
+    /// <summary>
+    /// Public method for UI system to trigger dodge
+    /// </summary>
+    public void PlayDodge()
+    {
+        if (!canMove) return;
         // Trigger dodge animation / perfect evasion logic
         anim.SetTrigger("DodgeTrigger");
         // TODO: add invincibility frames and movement impulse

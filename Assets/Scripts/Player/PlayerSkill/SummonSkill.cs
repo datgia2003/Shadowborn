@@ -58,11 +58,25 @@ public class SummonSkill : MonoBehaviour
     }
 
     /// <summary>
-    /// Input System callback (gắn trong PlayerInput).
+    /// ❌ DISABLED: Direct input bypass - Skills should go through UI system only!
+    /// This method was causing skills to execute without mana/cooldown checks
     /// </summary>
+    /*
     public void OnSummonSkill(InputValue value)
     {
         if (value.isPressed && !isCasting)
+        {
+            StartCasting();
+        }
+    }
+    */
+
+    /// <summary>
+    /// Public method for UI system to trigger the skill
+    /// </summary>
+    public void PlaySkill()
+    {
+        if (!isCasting)
         {
             StartCasting();
         }

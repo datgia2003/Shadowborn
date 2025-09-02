@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// Central UI manager that coordinates all UI systems
@@ -7,7 +8,7 @@ using UnityEngine;
 public class UIManager : MonoBehaviour
 {
     [Header("UI References")]
-    public PlayerHUD playerHUD;
+    public EnhancedPlayerHUD playerHUD;
     public SkillUISlot[] skillSlots;
     public Canvas mainCanvas;
 
@@ -15,9 +16,18 @@ public class UIManager : MonoBehaviour
     public bool showHUDAtStart = true;
     public bool enableSkillBarInput = true;
 
+    [Header("Input Actions")]
+    public InputActionReference sliceUpAction;
+    public InputActionReference summonSkillAction;
+    public InputActionReference ultimateAction;
+
+    [Header("Alternative Input Manager")]
+    public bool useInputManager = false; // Option to use InputManager instead of direct references
+
     // System references
     private PlayerResources playerResources;
     private SkillCooldownManager cooldownManager;
+    private InputManager inputManager;
 
     void Awake()
     {
@@ -47,6 +57,18 @@ public class UIManager : MonoBehaviour
         if (cooldownManager == null)
         {
             Debug.LogWarning("SkillCooldownManager not found! Skill UI may not function properly.");
+        }
+
+        // Find InputManager if using InputManager approach
+        if (useInputManager)
+        {
+            inputManager = FindObjectOfType<InputManager>();
+            if (inputManager == null)
+            {
+                Debug.LogWarning("InputManager not found! Creating one...");
+                var inputManagerObj = new GameObject("InputManager");
+                inputManager = inputManagerObj.AddComponent<InputManager>();
+            }
         }
     }
 
@@ -79,8 +101,8 @@ public class UIManager : MonoBehaviour
         {
             if (skillSlots[i] != null)
             {
-                skillSlots[i].SetupSkill(allSkills[i].skillName);
-                Debug.Log($"Assigned skill '{allSkills[i].skillName}' to slot {i}");
+                var skill = allSkills[i];
+                skillSlots[i].SetSkillData(skill.skillName, skill.skillIcon, skill.inputKey, skill.manaCost);
             }
         }
     }
@@ -92,47 +114,147 @@ public class UIManager : MonoBehaviour
         {
             HandleSkillBarInput();
         }
+
+        // INPUT SYSTEM: Use proper Input System approach instead of old Input class
+        // Skills will be handled through Input Actions or PlayerInput callbacks
+        // This prevents the InvalidOperationException when using Input System package
+    }
+
+    private void HandleDirectKeyboardInput()
+    {
+        // REMOVED: This method used old Input.GetKeyDown() which conflicts with Input System
+        // Skills are now handled through Input Actions or PlayerInput callbacks
+        // See HandleInputWithActionReferences() for proper Input System implementation
     }
 
     private void HandleSkillBarInput()
     {
         if (cooldownManager == null) return;
 
-        // Check for skill inputs
-        var allSkills = cooldownManager.GetAllSkills();
-        foreach (var skill in allSkills)
+        // Use InputManager if available and enabled
+        if (useInputManager && inputManager != null)
         {
-            if (Input.GetKeyDown(skill.inputKey))
-            {
-                bool success = cooldownManager.TryUseSkill(skill.skillName);
+            HandleInputWithInputManager();
+        }
+        else
+        {
+            HandleInputWithActionReferences();
+        }
+    }
 
-                // Provide feedback for failed attempts
-                if (!success)
-                {
-                    var availability = cooldownManager.GetSkillAvailability(skill.skillName);
-                    switch (availability)
-                    {
-                        case SkillCooldownManager.SkillAvailability.OnCooldown:
-                            ShowMessage($"{skill.displayName} on cooldown ({cooldownManager.GetRemainingCooldown(skill.skillName):F1}s)");
-                            break;
-                        case SkillCooldownManager.SkillAvailability.InsufficientMana:
-                            ShowMessage($"Not enough mana for {skill.displayName}");
-                            break;
-                        case SkillCooldownManager.SkillAvailability.Unavailable:
-                            ShowMessage($"{skill.displayName} unavailable");
-                            break;
-                    }
-                }
-                else
-                {
-                    // Success - trigger the actual skill
-                    TriggerSkillAction(skill.skillName);
-                }
+    private void HandleInputWithInputManager()
+    {
+        // SliceUp
+        if (inputManager.IsSkillPressed("sliceup"))
+        {
+            bool success = cooldownManager.TryUseSkill("SliceUp");
+            if (success)
+            {
+                TriggerSkillAction("SliceUp");
+            }
+            else
+            {
+                var availability = cooldownManager.GetSkillAvailability("SliceUp");
+                HandleSkillFailure("SliceUp", availability);
+            }
+        }
+
+        // SummonSkill
+        if (inputManager.IsSkillPressed("summonskill"))
+        {
+            bool success = cooldownManager.TryUseSkill("SummonSkill");
+            if (success)
+            {
+                TriggerSkillAction("SummonSkill");
+            }
+            else
+            {
+                var availability = cooldownManager.GetSkillAvailability("SummonSkill");
+                HandleSkillFailure("SummonSkill", availability);
+            }
+        }
+
+        // Ultimate
+        if (inputManager.IsSkillPressed("ultimate"))
+        {
+            bool success = cooldownManager.TryUseSkill("Ultimate");
+            if (success)
+            {
+                TriggerSkillAction("Ultimate");
+            }
+            else
+            {
+                var availability = cooldownManager.GetSkillAvailability("Ultimate");
+                HandleSkillFailure("Ultimate", availability);
             }
         }
     }
 
-    private void TriggerSkillAction(string skillName)
+    private void HandleInputWithActionReferences()
+    {
+        // Check for skill inputs using Input Actions
+        // SliceUp (U key)
+        if (sliceUpAction != null && sliceUpAction.action.WasPressedThisFrame())
+        {
+            bool success = cooldownManager.TryUseSkill("SliceUp");
+            if (success)
+            {
+                TriggerSkillAction("SliceUp");
+            }
+            else
+            {
+                var availability = cooldownManager.GetSkillAvailability("SliceUp");
+                HandleSkillFailure("SliceUp", availability);
+            }
+        }
+
+        // SummonSkill (I key)
+        if (summonSkillAction != null && summonSkillAction.action.WasPressedThisFrame())
+        {
+            bool success = cooldownManager.TryUseSkill("SummonSkill");
+            if (success)
+            {
+                TriggerSkillAction("SummonSkill");
+            }
+            else
+            {
+                var availability = cooldownManager.GetSkillAvailability("SummonSkill");
+                HandleSkillFailure("SummonSkill", availability);
+            }
+        }
+
+        // Ultimate (O key)
+        if (ultimateAction != null && ultimateAction.action.WasPressedThisFrame())
+        {
+            bool success = cooldownManager.TryUseSkill("Ultimate");
+            if (success)
+            {
+                TriggerSkillAction("Ultimate");
+            }
+            else
+            {
+                var availability = cooldownManager.GetSkillAvailability("Ultimate");
+                HandleSkillFailure("Ultimate", availability);
+            }
+        }
+    }
+    private void HandleSkillFailure(string skillName, SkillCooldownManager.SkillAvailability availability)
+    {
+        switch (availability)
+        {
+            case SkillCooldownManager.SkillAvailability.OnCooldown:
+                ShowMessage($"{skillName} on cooldown ({cooldownManager.GetRemainingCooldown(skillName):F1}s)");
+                break;
+            case SkillCooldownManager.SkillAvailability.InsufficientMana:
+                ShowMessage($"Not enough mana for {skillName}");
+                break;
+            case SkillCooldownManager.SkillAvailability.Unavailable:
+                ShowMessage($"{skillName} unavailable");
+                break;
+        }
+    }
+
+    public void TriggerSkillAction(string skillName)
     {
         // This bridges the UI system to the actual skill systems
         switch (skillName)
@@ -155,41 +277,80 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public void TriggerSkillAction(KeyCode key)
+    {
+        // Find skill by key and trigger it
+        if (cooldownManager != null)
+        {
+            var allSkills = cooldownManager.GetAllSkills();
+            foreach (var skill in allSkills)
+            {
+                if (skill.inputKey == key)
+                {
+                    TriggerSkillAction(skill.skillName);
+                    return;
+                }
+            }
+        }
+    }
+
     private void TriggerSliceUp()
     {
+        // Mana already consumed in TryUseSkill, just trigger skill effect
         var sliceUpSkill = FindObjectOfType<SliceUpSkill>();
         if (sliceUpSkill != null)
         {
+            // Call PlaySkill which is the public API method
             sliceUpSkill.PlaySkill();
-            Debug.Log("Triggered SliceUp from UI");
+        }
+        else
+        {
+            Debug.LogWarning("SliceUpSkill component not found!");
         }
     }
 
     private void TriggerSummonSkill()
     {
+        // Mana already consumed in TryUseSkill, just trigger skill effect
         var summonSkill = FindObjectOfType<SummonSkill>();
         if (summonSkill != null)
         {
-            summonSkill.OnSummonSkill(new UnityEngine.InputSystem.InputValue()); // Mock input
-            Debug.Log("Triggered Summon from UI");
+            // Call the new PlaySkill method instead of the disabled OnSummonSkill
+            summonSkill.PlaySkill();
+        }
+        else
+        {
+            Debug.LogWarning("SummonSkill component not found!");
         }
     }
 
     private void TriggerUltimate()
     {
+        // Mana already consumed in TryUseSkill, just trigger skill effect
         var ultimateSkill = FindObjectOfType<TruthMultilateUltimate>();
         if (ultimateSkill != null)
         {
-            ultimateSkill.StartUltimate();
-            Debug.Log("Triggered Ultimate from UI");
+            // Call the new PlaySkill method for consistency
+            ultimateSkill.PlaySkill();
+        }
+        else
+        {
+            Debug.LogWarning("TruthMultilateUltimate component not found!");
         }
     }
 
     private void TriggerDodge()
     {
-        // Implement dodge logic or find dodge component
-        Debug.Log("Triggered Dodge from UI");
-        // You may need to implement this based on your dodge system
+        // No mana cost for dodge, just trigger it
+        var playerController = FindObjectOfType<PlayerController>();
+        if (playerController != null)
+        {
+            playerController.PlayDodge();
+        }
+        else
+        {
+            Debug.LogWarning("PlayerController component not found!");
+        }
     }
 
     private void ShowMessage(string message)
@@ -241,7 +402,7 @@ public class UIManager : MonoBehaviour
 
         foreach (var slot in skillSlots)
         {
-            if (slot != null && slot.GetAssignedSkill() == skillName)
+            if (slot != null && slot.skillName == skillName)
             {
                 return slot;
             }

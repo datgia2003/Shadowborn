@@ -38,6 +38,7 @@ public class SkillCooldownManager : MonoBehaviour
     private Dictionary<string, float> skillLastUsed = new Dictionary<string, float>();
 
     // Event system for UI updates
+    public static event Action<string, float, float> OnSkillCooldownChanged; // skillName, currentCooldown, maxCooldown
     public static event Action<string, float, float> OnCooldownUpdated; // skillName, currentCooldown, maxCooldown
     public static event Action<string> OnSkillReady; // skillName
     public static event Action<string> OnSkillUsed;  // skillName
@@ -47,7 +48,17 @@ public class SkillCooldownManager : MonoBehaviour
 
     void Awake()
     {
+        // Find PlayerResources - try same GameObject first, then search globally
         playerResources = GetComponent<PlayerResources>();
+        if (playerResources == null)
+        {
+            playerResources = FindObjectOfType<PlayerResources>();
+        }
+
+        if (playerResources == null)
+        {
+            Debug.LogError("SkillCooldownManager: PlayerResources not found! Mana consumption will not work.");
+        }
 
         // Initialize cooldown tracking
         foreach (var skill in skills)
@@ -75,6 +86,7 @@ public class SkillCooldownManager : MonoBehaviour
 
             // Fire events for UI updates
             OnCooldownUpdated?.Invoke(skillName, remainingCooldown, skill.cooldownDuration);
+            OnSkillCooldownChanged?.Invoke(skillName, remainingCooldown, skill.cooldownDuration);
 
             // Fire ready event when cooldown finishes
             if (wasOnCooldown && remainingCooldown <= 0f)
@@ -95,7 +107,12 @@ public class SkillCooldownManager : MonoBehaviour
         // Check if skill is on cooldown
         if (IsOnCooldown(skillName))
         {
-            Debug.Log($"Skill {skillName} is on cooldown ({GetRemainingCooldown(skillName):F1}s remaining)");
+            return false;
+        }
+
+        // Check skill-specific requirements BEFORE consuming mana
+        if (!CheckSkillSpecificRequirements(skillName))
+        {
             return false;
         }
 
@@ -104,16 +121,46 @@ public class SkillCooldownManager : MonoBehaviour
         {
             if (!playerResources.HasManaFor(skillData.manaCost))
             {
-                Debug.Log($"Not enough mana for {skillName} (need {skillData.manaCost})");
                 return false;
             }
 
             // Consume mana
-            playerResources.TryConsumeMana(skillData.manaCost);
+            bool manaConsumed = playerResources.TryConsumeMana(skillData.manaCost);
+            if (!manaConsumed)
+            {
+                Debug.LogError($"Failed to consume mana for {skillName}! This should not happen after the check.");
+                return false;
+            }
         }
 
         // Use skill
         UseSkill(skillName);
+        return true;
+    }
+
+    /// <summary>
+    /// Check skill-specific requirements (enemy presence, etc.) before consuming resources
+    /// </summary>
+    private bool CheckSkillSpecificRequirements(string skillName)
+    {
+        switch (skillName)
+        {
+            case "Ultimate":
+                var ultimateSkill = FindObjectOfType<TruthMultilateUltimate>();
+                if (ultimateSkill != null)
+                {
+                    return ultimateSkill.CanUseSkill();
+                }
+                break;
+
+            // Other skills don't have special requirements yet
+            case "SliceUp":
+            case "SummonSkill":
+            case "Dodge":
+            default:
+                return true;
+        }
+
         return true;
     }
 
@@ -126,7 +173,6 @@ public class SkillCooldownManager : MonoBehaviour
         {
             skillLastUsed[skillName] = Time.time;
             OnSkillUsed?.Invoke(skillName);
-            Debug.Log($"Used skill: {skillName}");
         }
     }
 

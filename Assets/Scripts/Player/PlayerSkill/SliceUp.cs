@@ -99,6 +99,9 @@ public class SliceUpSkill : MonoBehaviour
     // Cached PlayerController for reliable grounded state
     private PlayerController pc;
 
+    // ❌ DISABLED: Direct input bypass - Skills should go through UI system only!
+    // This method was causing skills to execute without mana/cooldown checks
+    /*
     public void OnSliceUp(InputValue v)
     {
         if (v.isPressed)
@@ -110,6 +113,7 @@ public class SliceUpSkill : MonoBehaviour
             PlaySkill();
         }
     }
+    */
 
     void Awake()
     {

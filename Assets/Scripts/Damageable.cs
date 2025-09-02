@@ -173,7 +173,24 @@ public class Damageable : MonoBehaviour, IDamageable
 
     void OnDeath()
     {
-
+        // Award experience if this is an enemy
+        var experienceSystem = FindObjectOfType<ExperienceSystem>();
+        if (experienceSystem != null)
+        {
+            // Check if this is a bat enemy
+            var batController = GetComponent<BatController>();
+            if (batController != null)
+            {
+                experienceSystem.GainExpFromEnemy("bat");
+                Debug.Log("💀 Bat defeated via Damageable → +50 EXP awarded to player");
+            }
+            else
+            {
+                // Generic enemy fallback
+                experienceSystem.GainExperience("Enemy (Unknown)", 10);
+                Debug.Log("💀 Enemy defeated via Damageable → +10 EXP awarded to player");
+            }
+        }
 
         // Đảm bảo Animator luôn enable để play Die
         if (animator != null)
