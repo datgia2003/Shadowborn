@@ -7,6 +7,9 @@ using System;
 /// </summary>
 public class ExperienceSystem : MonoBehaviour
 {
+    // Singleton pattern
+    public static ExperienceSystem Instance { get; private set; }
+
     [Header("🌟 Experience Configuration")]
     [SerializeField] private int baseExpToNextLevel = 100;
     [SerializeField] private float expGrowthRate = 1.2f; // Exponential growth
@@ -39,6 +42,18 @@ public class ExperienceSystem : MonoBehaviour
 
     void Awake()
     {
+        // Singleton setup
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         // Find player resources
         playerResources = FindObjectOfType<PlayerResources>();
         if (playerResources == null)
@@ -159,25 +174,26 @@ public class ExperienceSystem : MonoBehaviour
     {
         if (playerResources != null)
         {
-            // Apply stat bonuses directly to public fields
-            int oldHealth = playerResources.maxHealth;
-            int oldMana = playerResources.maxMana;
+            // Get current values for logging
+            int oldHealth = playerResources.GetMaxHealth();
+            int oldMana = playerResources.GetMaxMana();
             int oldEnergy = playerResources.maxEnergy;
 
-            playerResources.maxHealth += healthBonusPerLevel;
-            playerResources.maxMana += manaBonusPerLevel;
+            // Apply bonuses - the methods will add to base values
+            playerResources.AddMaxHealth(healthBonusPerLevel);
+            playerResources.AddMaxMana(manaBonusPerLevel);
             playerResources.maxEnergy += energyBonusPerLevel;
 
-            // Also restore full health/mana/energy on level up
-            playerResources.AddHealth(healthBonusPerLevel); // Add the bonus health
-            playerResources.AddMana(manaBonusPerLevel);     // Add the bonus mana
-            playerResources.AddEnergy(energyBonusPerLevel); // Add the bonus energy
+            // Also restore health/mana/energy on level up
+            playerResources.AddHealth(healthBonusPerLevel);
+            playerResources.AddMana(manaBonusPerLevel);
+            playerResources.AddEnergy(energyBonusPerLevel);
 
             if (showDebugLogs)
             {
                 Debug.Log($"💪 Level {currentLevel} bonuses applied:");
-                Debug.Log($"   Health: {oldHealth} → {playerResources.maxHealth} (+{healthBonusPerLevel})");
-                Debug.Log($"   Mana: {oldMana} → {playerResources.maxMana} (+{manaBonusPerLevel})");
+                Debug.Log($"   Health: {oldHealth} → {playerResources.GetMaxHealth()} (+{healthBonusPerLevel})");
+                Debug.Log($"   Mana: {oldMana} → {playerResources.GetMaxMana()} (+{manaBonusPerLevel})");
                 Debug.Log($"   Energy: {oldEnergy} → {playerResources.maxEnergy} (+{energyBonusPerLevel})");
             }
         }

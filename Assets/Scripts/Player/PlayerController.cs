@@ -12,6 +12,9 @@ public class PlayerController : MonoBehaviour
     public float fallGravityMultiplier = 1.8f;
     public float lowJumpGravityMultiplier = 2.2f;
 
+    [Header("Stats Modifiers")]
+    [SerializeField, ReadOnly] private float speedMultiplier = 1f;
+
     [Header("Ground Check")]
     public Transform groundCheck;
     public float groundCheckRadius = 0.15f;
@@ -122,7 +125,7 @@ public class PlayerController : MonoBehaviour
     void HandleMovement()
     {
         float dir = moveInput.x;
-        float speed = isRunning ? runSpeed : walkSpeed;
+        float speed = (isRunning ? runSpeed : walkSpeed) * speedMultiplier;
         rb.velocity = new Vector2(dir * speed, rb.velocity.y);
 
         if (Mathf.Abs(dir) > 0.01f)
@@ -165,6 +168,18 @@ public class PlayerController : MonoBehaviour
         anim.SetFloat("YVel", rb.velocity.y);
         anim.SetBool("IsRunning", isRunning);
     }
+
+    #region Stats Integration
+
+    public void ApplySpeedMultiplier(float multiplier)
+    {
+        speedMultiplier = multiplier;
+        Debug.Log($"🏃 Speed multiplier applied: {speedMultiplier:F2}x");
+    }
+
+    public float GetSpeedMultiplier() => speedMultiplier;
+
+    #endregion
 
 
 

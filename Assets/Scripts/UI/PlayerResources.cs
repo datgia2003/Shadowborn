@@ -14,14 +14,19 @@ public class ReadOnlyAttribute : PropertyAttribute { }
 /// </summary>
 public class PlayerResources : MonoBehaviour
 {
+    // Singleton pattern
+    public static PlayerResources Instance { get; private set; }
+
     [Header("Health Settings")]
-    public int maxHealth = 100;
+    public int baseMaxHealth = 100;
+    [SerializeField, ReadOnly] private int maxHealth = 100;
     public float healthRegenRate = 2f; // HP per second when not in combat
     public float healthRegenDelay = 3f; // Delay after taking damage before regen starts
     public float invincibleTime = 0.5f; // Invincibility duration after taking damage
 
     [Header("Mana Settings")]
-    public int maxMana = 100;
+    public int baseMaxMana = 100;
+    [SerializeField, ReadOnly] private int maxMana = 100;
     public float manaRegenRate = 1f; // Mana per second (adjustable in inspector)
     public int sliceUpManaCost = 20;
     public int summonManaCost = 30;
@@ -74,6 +79,18 @@ public class PlayerResources : MonoBehaviour
 
     void Awake()
     {
+        // Singleton setup
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         // Initialize resources
         currentHealth = maxHealth;
         currentMana = maxMana;
@@ -379,6 +396,38 @@ public class PlayerResources : MonoBehaviour
 
         AddExperience(expReward);
     }
+
+    #region Stats Integration Methods
+
+    public void AddMaxHealth(int bonusAmount)
+    {
+        maxHealth += bonusAmount;
+
+        // If current health is higher than new max, adjust it
+        if (currentHealth > maxHealth)
+        {
+            currentHealth = maxHealth;
+        }
+
+        OnHealthChanged?.Invoke(currentHealth, maxHealth);
+        Debug.Log($"Max health increased by {bonusAmount}: {maxHealth}");
+    }
+
+    public void AddMaxMana(int bonusAmount)
+    {
+        maxMana += bonusAmount;
+
+        // If current mana is higher than new max, adjust it
+        if (currentMana > maxMana)
+        {
+            currentMana = maxMana;
+        }
+
+        OnManaChanged?.Invoke(currentMana, maxMana);
+        Debug.Log($"Max mana increased by {bonusAmount}: {maxMana}");
+    }
+
+    #endregion
 
     // Compatibility method for external scripts expecting PlayerHealth interface
     public int GetHP() => currentHealth;
