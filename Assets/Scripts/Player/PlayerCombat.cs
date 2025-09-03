@@ -64,11 +64,6 @@ public class PlayerCombat : MonoBehaviour
     [Header("Attack Speed Buff")]
     [Tooltip("Multiplier applied to Animator.speed during attacks")] public float attackSpeed = 1f;
 
-    [Header("Stats Modifiers")]
-    [SerializeField, ReadOnly] private float damageMultiplier = 1f;
-    [SerializeField, ReadOnly] private float attackSpeedMultiplier = 1f;
-    [SerializeField, ReadOnly] private float critChance = 0f; // Percentage (0-100)
-
     [Header("Hit Stop")]
     public float hitStopTime = 0.05f; // thời gian pause khi đánh trúng
 
@@ -487,51 +482,6 @@ public class PlayerCombat : MonoBehaviour
             }
         }
     }
-
-    #region Stats Integration
-
-    public void ApplyDamageMultiplier(float multiplier)
-    {
-        damageMultiplier = multiplier;
-        Debug.Log($"⚔️ Damage multiplier applied: {damageMultiplier:F2}x");
-    }
-
-    public void ApplyAttackSpeedMultiplier(float multiplier)
-    {
-        attackSpeedMultiplier = multiplier;
-        // Update animator speed immediately
-        anim.speed = attackSpeed * attackSpeedMultiplier;
-        Debug.Log($"⚡ Attack speed multiplier applied: {attackSpeedMultiplier:F2}x");
-    }
-
-    public void ApplyCritChance(float chance)
-    {
-        critChance = Mathf.Clamp(chance, 0f, 100f);
-        Debug.Log($"🎯 Critical hit chance applied: {critChance:F1}%");
-    }
-
-    public float GetDamageMultiplier() => damageMultiplier;
-    public float GetAttackSpeedMultiplier() => attackSpeedMultiplier;
-    public float GetCritChance() => critChance;
-
-    /// <summary>
-    /// Calculate final damage with stats modifiers and crit chance
-    /// </summary>
-    public int CalculateFinalDamage(int baseDamage)
-    {
-        float finalDamage = baseDamage * damageMultiplier;
-
-        // Check for critical hit
-        if (Random.Range(0f, 100f) < critChance)
-        {
-            finalDamage *= 2f; // Crit multiplier x2
-            Debug.Log($"💥 CRITICAL HIT! Damage: {finalDamage:F0} (Base: {baseDamage}, Crit x2)");
-        }
-
-        return Mathf.RoundToInt(finalDamage);
-    }
-
-    #endregion
 }
 
 
