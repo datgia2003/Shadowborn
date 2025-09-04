@@ -6,9 +6,9 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     [Header("Movement")]
-    public float walkSpeed = 3.5f;
-    public float runSpeed = 7f;
-    public float jumpForce = 12f;
+    public float walkSpeed = 7f;
+    public float runSpeed = 18f;
+    public float jumpForce = 20f;
     public float fallGravityMultiplier = 1.8f;
     public float lowJumpGravityMultiplier = 2.2f;
 

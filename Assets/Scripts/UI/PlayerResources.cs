@@ -285,16 +285,16 @@ public class PlayerResources : MonoBehaviour
         OnEnergyChanged?.Invoke(currentEnergy, maxEnergy);
     }
 
-    // Level & Experience management
+    // Level & Experience management - DISABLED, using ExperienceSystem instead
     public void AddExperience(int amount)
     {
         currentExp += amount;
 
-        // Check for level up
-        while (currentExp >= expToNextLevel)
-        {
-            LevelUp();
-        }
+        // DISABLED: Check for level up - now handled by ExperienceSystem
+        // while (currentExp >= expToNextLevel)
+        // {
+        //     LevelUp();
+        // }
 
         OnExpChanged?.Invoke(currentExp, expToNextLevel);
     }
@@ -316,13 +316,16 @@ public class PlayerResources : MonoBehaviour
 
     private void ApplyLevelUpBonuses()
     {
-        // Increase max health by 10 per level
-        maxHealth += 10;
+        // DISABLED: Now handled by PlayerStats system via VIT/INT stats
+        // This method is no longer used to avoid conflicts with stat-based system
 
-        // Increase max mana by 5 per level
-        maxMana += 5;
+        // OLD LOGIC (disabled):
+        // maxHealth += 10; // Now calculated from VIT stat  
+        // maxMana += 5;    // Now calculated from INT stat
 
-        // Restore health and mana on level up
+        Debug.Log("⚠️ PlayerResources.ApplyLevelUpBonuses is disabled - using PlayerStats system instead");
+
+        // Still restore health/mana on level up
         currentHealth = maxHealth;
         currentMana = maxMana;
 
@@ -341,6 +344,16 @@ public class PlayerResources : MonoBehaviour
     public int GetCurrentLevel() => currentLevel;
     public int GetCurrentExp() => currentExp;
     public int GetExpToNextLevel() => expToNextLevel;
+
+    /// <summary>
+    /// Set current health directly (for initialization)
+    /// </summary>
+    public void SetCurrentHealth(int newHealth)
+    {
+        currentHealth = Mathf.Clamp(newHealth, 0, maxHealth);
+        OnHealthChanged?.Invoke(currentHealth, maxHealth);
+        Debug.Log($"💚 SetCurrentHealth: {currentHealth}/{maxHealth}");
+    }
 
     public bool HasManaFor(int amount) => currentMana >= amount;
     public bool HasEnergyFor(int amount) => currentEnergy >= amount;

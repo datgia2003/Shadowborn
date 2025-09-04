@@ -220,6 +220,7 @@ public class EnhancedPlayerHUD : MonoBehaviour
             // Subscribe to experience system events
             ExperienceSystem.OnExpChanged += UpdateExpDisplay;
             ExperienceSystem.OnLevelUp += OnLevelUp;
+            ExperienceSystem.OnMultiLevelUp += OnMultiLevelUp; // Also listen for multi-level ups
 
             Debug.Log("✅ Enhanced PlayerHUD subscribed to ExperienceSystem events");
 
@@ -246,6 +247,7 @@ public class EnhancedPlayerHUD : MonoBehaviour
         {
             ExperienceSystem.OnExpChanged -= UpdateExpDisplay;
             ExperienceSystem.OnLevelUp -= OnLevelUp;
+            ExperienceSystem.OnMultiLevelUp -= OnMultiLevelUp;
         }
 
         // Stop coroutines
@@ -543,6 +545,34 @@ public class EnhancedPlayerHUD : MonoBehaviour
         StartCoroutine(LevelUpAvatarGlow());
 
         // Update level display
+        UpdatePlayerInfo();
+    }
+
+    private void OnMultiLevelUp(int startLevel, int endLevel, int totalPoints)
+    {
+        // For multi-level ups, just trigger the same effects as single level up
+        // but update to the final level
+        Debug.Log($"EnhancedPlayerHUD: Multi-level up from {startLevel} to {endLevel}");
+
+        // Level up particle effect
+        if (levelUpParticles != null && enableParticleEffects)
+        {
+            levelUpParticles.Play();
+        }
+
+        // Level up sound
+        if (audioSource != null && levelUpSound != null)
+        {
+            audioSource.PlayOneShot(levelUpSound);
+        }
+
+        // Flash effect
+        StartCoroutine(FlashLevelText());
+
+        // Avatar glow boost
+        StartCoroutine(LevelUpAvatarGlow());
+
+        // Update level display to final level
         UpdatePlayerInfo();
     }
     private IEnumerator FlashLevelText()

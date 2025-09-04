@@ -76,6 +76,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "StatsToggle",
+                    "type": "Button",
+                    "id": "54bda9e7-01ec-4be1-94af-fcd629614ec5",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -158,17 +167,6 @@
                 },
                 {
                     "name": "",
-                    "id": "81b16af4-2816-4092-91b2-37ec6ffcb65d",
-                    "path": "<Mouse>/leftButton",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Light",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "c9be3fcf-46b7-43e1-9a37-d6c26ae93247",
                     "path": "<Keyboard>/l",
                     "interactions": "",
@@ -219,6 +217,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "Ultimate",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "16323439-c715-40a1-ab37-f18e3ad0249b",
+                    "path": "<Keyboard>/tab",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "StatsToggle",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

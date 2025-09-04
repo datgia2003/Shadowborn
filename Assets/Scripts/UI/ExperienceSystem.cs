@@ -22,6 +22,7 @@ public class ExperienceSystem : MonoBehaviour
     [SerializeField] private int healthBonusPerLevel = 10;
     [SerializeField] private int manaBonusPerLevel = 5;
     [SerializeField] private int energyBonusPerLevel = 3;
+    [SerializeField] private int statPointsPerLevel = 3; // Solo Leveling style stat points
 
     // Current state
     [Header("📊 Current Status (Read Only)")]
@@ -34,7 +35,8 @@ public class ExperienceSystem : MonoBehaviour
 
     // Events for UI updates
     public static event Action<int, int> OnExpChanged; // current exp, exp needed for next level
-    public static event Action<int> OnLevelUp; // new level
+    public static event Action<int> OnLevelUp; // new level (single level up)
+    public static event Action<int, int, int> OnMultiLevelUp; // startLevel, endLevel, totalPoints
     public static event Action<string, int> OnExpGained; // source, amount
 
     void Awake()
@@ -128,9 +130,44 @@ public class ExperienceSystem : MonoBehaviour
 
     private void CheckForLevelUp()
     {
+        int levelsGained = 0;
+        int startLevel = currentLevel;
+
         while (currentExp >= expToNextLevel)
         {
             LevelUp();
+            levelsGained++;
+        }
+
+        // Fire appropriate events based on levels gained
+        if (levelsGained > 0)
+        {
+            int totalPointsAwarded = levelsGained * statPointsPerLevel;
+            Debug.Log($"🎉 LEVEL UP! Gained {levelsGained} levels ({startLevel}→{currentLevel}), Total points: {totalPointsAwarded}");
+
+            // Award stat points to PlayerStats system (total for all levels gained)
+            var playerStats = FindObjectOfType<PlayerStats>();
+            if (playerStats != null)
+            {
+                playerStats.AddAvailablePoints(totalPointsAwarded);
+                Debug.Log($"🎯 Awarded {totalPointsAwarded} total stat points for {levelsGained} levels!");
+            }
+            else
+            {
+                Debug.LogWarning("⚠️ PlayerStats not found - stat points not awarded!");
+            }
+
+            if (levelsGained == 1)
+            {
+                // Single level up - fire both events for compatibility
+                OnLevelUp?.Invoke(currentLevel);
+                OnMultiLevelUp?.Invoke(startLevel, currentLevel, totalPointsAwarded);
+            }
+            else
+            {
+                // Multi level up - fire multi event only
+                OnMultiLevelUp?.Invoke(startLevel, currentLevel, totalPointsAwarded);
+            }
         }
     }
 
@@ -143,11 +180,8 @@ public class ExperienceSystem : MonoBehaviour
         // Recalculate next level requirement
         CalculateExpToNextLevel();
 
-        // Apply level up bonuses
+        // Apply level up bonuses (but don't fire individual notifications here)
         ApplyLevelUpBonuses();
-
-        // Fire level up event
-        OnLevelUp?.Invoke(currentLevel);
 
         if (showDebugLogs)
         {
@@ -164,6 +198,7 @@ public class ExperienceSystem : MonoBehaviour
             int oldMana = playerResources.maxMana;
             int oldEnergy = playerResources.maxEnergy;
 
+            // Health bonus from level up (separate from VIT bonus)
             playerResources.maxHealth += healthBonusPerLevel;
             playerResources.maxMana += manaBonusPerLevel;
             playerResources.maxEnergy += energyBonusPerLevel;
@@ -185,9 +220,22 @@ public class ExperienceSystem : MonoBehaviour
         {
             Debug.LogWarning("⚠️ PlayerResources not found - level up bonuses not applied!");
         }
-    }    // Public getters for UI
+
+        // Note: Stat points now awarded in GainExperience for total levels gained
+    }
+
+    // Public getters for UI
     public int GetCurrentLevel() => currentLevel;
     public int GetCurrentExp() => currentExp;
     public int GetExpToNextLevel() => expToNextLevel;
     public float GetExpProgress() => (float)currentExp / expToNextLevel;
+
+    /// <summary>
+    /// Test method to force level up for debugging
+    /// </summary>
+    [ContextMenu("Test Level Up")]
+    public void TestLevelUp()
+    {
+        GainExperience("Test", expToNextLevel);
+    }
 }
