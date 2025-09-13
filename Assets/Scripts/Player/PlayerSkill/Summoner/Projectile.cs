@@ -387,29 +387,8 @@ public class Projectile : MonoBehaviour
     {
         int damageInt = Mathf.RoundToInt(damageAmount);
 
-        // Try BatController first (most common enemy)
-        var batController = enemy.GetComponent<BatController>();
-        if (batController != null)
-        {
-            batController.TakeDamage(damageInt);
-            return;
-        }
-
-        // Try PlayerResources (if projectile somehow hits player)
-        var playerResources = enemy.GetComponent<PlayerResources>();
-        if (playerResources != null)
-        {
-            playerResources.TakeDamage(damageInt);
-            return;
-        }
-
-        // Try generic Damageable interface if available
-        var damageable = enemy.GetComponent<IDamageable>();
-        if (damageable != null)
-        {
-            damageable.TakeHit(damageAmount); // Use float damage directly
-            return;
-        }
+        // Use the centralized damage utility for universal compatibility
+        SkillDamageUtility.ApplyDamageToTarget(enemy, damageInt, "Projectile");
     }
 
     private void DealAreaDamage(Vector3 center, GameObject excludeTarget)

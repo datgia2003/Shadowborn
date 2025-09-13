@@ -19,7 +19,7 @@ TagManager:
   - Hitbox_Player
   - ProjectileLayer
   - Summoner
-  - 
+  - Boss
   - 
   - 
   - 
@@ -46,8 +46,14 @@ TagManager:
   - name: Background
     uniqueID: 642920593
     locked: 0
+  - name: EnemyFXBehind
+    uniqueID: 1214990661
+    locked: 0
   - name: Enemy
     uniqueID: 1327909979
+    locked: 0
+  - name: EnemyFXTop
+    uniqueID: 1173364101
     locked: 0
   - name: FX_Behind
     uniqueID: 3770083879

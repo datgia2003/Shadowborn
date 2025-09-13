@@ -1340,10 +1340,26 @@ public class TruthMultilateUltimate : MonoBehaviour
     {
         if (enemy == null || enemy == gameObject) return;
 
-        // Apply damage using SendMessage like other skills
-        enemy.SendMessage("TakeDamage", damagePerHit, SendMessageOptions.DontRequireReceiver);
+        // Use the centralized damage utility with boss stun for Ultimate
+        SkillDamageUtility.ApplyDamageToTarget(enemy, damagePerHit, "TruthMultilateUltimate", stunBoss: true);
 
-        // Completely disable enemy logic by disabling all components
+        // Check if it's a boss - if so, let the StunBoss handle everything
+        Igris boss = enemy.GetComponent<Igris>();
+        if (boss != null)
+        {
+            Debug.Log($"Ultimate hit boss for {damagePerHit} damage and stunned it!");
+            hasHitTarget = true;
+
+            // Spawn hit FX for boss
+            if (fxHitSpark.prefab != null)
+            {
+                Vector3 hitPos = enemy.transform.position;
+                SpawnFX(fxHitSpark, hitPos - transform.position);
+            }
+            return; // Boss stun handling is done by SkillDamageUtility
+        }
+
+        // For regular enemies, apply the original disable logic
         var enemyComponents = enemy.GetComponents<MonoBehaviour>();
         foreach (var component in enemyComponents)
         {
@@ -1363,7 +1379,7 @@ public class TruthMultilateUltimate : MonoBehaviour
             }
         }
 
-        // Also freeze rigidbody
+        // Freeze regular enemies
         Rigidbody2D enemyRb = enemy.GetComponent<Rigidbody2D>();
         if (enemyRb != null)
         {
@@ -1371,7 +1387,7 @@ public class TruthMultilateUltimate : MonoBehaviour
             enemyRb.isKinematic = true;
         }
 
-        // Force hurt animation and disable animator to lock it
+        // Force hurt animation for regular enemies
         Animator enemyAnimator = enemy.GetComponent<Animator>();
         if (enemyAnimator != null)
         {
@@ -1379,7 +1395,6 @@ public class TruthMultilateUltimate : MonoBehaviour
             if (enemyAnimator.HasState(0, Animator.StringToHash("Bat_Hurt")))
             {
                 enemyAnimator.Play("Bat_Hurt");
-                // Start coroutine to lock the animation
                 StartCoroutine(LockEnemyAnimation(enemyAnimator, "Bat_Hurt"));
             }
             else if (enemyAnimator.HasState(0, Animator.StringToHash("Hurt")))
@@ -1405,7 +1420,7 @@ public class TruthMultilateUltimate : MonoBehaviour
         enemy.SendMessage("PlayHurtAnimation", SendMessageOptions.DontRequireReceiver);
         enemy.SendMessage("OnHit", SendMessageOptions.DontRequireReceiver);
         enemy.SendMessage("OnDamage", SendMessageOptions.DontRequireReceiver);
-        enemy.SendMessage("ForceStun", 2.5f, SendMessageOptions.DontRequireReceiver); // Long stun duration
+        enemy.SendMessage("ForceStun", 2.5f, SendMessageOptions.DontRequireReceiver);
 
         hasHitTarget = true;
 
@@ -1416,7 +1431,7 @@ public class TruthMultilateUltimate : MonoBehaviour
             SpawnFX(fxHitSpark, hitPos - transform.position);
         }
 
-        Debug.Log($"Ultimate hit enemy {enemy.name}: {damagePerHit} damage, completely disabled enemy logic");
+        Debug.Log($"Ultimate hit enemy {enemy.name}: {damagePerHit} damage, disabled enemy logic");
     }
     GameObject SpawnFX(UltimateFXSettings fxSettings, Vector3 additionalOffset = default, Vector3 scaleOverride = default, float rotationOverride = float.NaN, float lifetimeOverride = -1f)
     {

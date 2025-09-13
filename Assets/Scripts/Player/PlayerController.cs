@@ -101,8 +101,15 @@ public class PlayerController : MonoBehaviour
     void OnDodge(InputValue v)
     {
         if (!canMove || !v.isPressed) return;
-        // Trigger dodge animation / perfect evasion logic
-        anim.SetTrigger("DodgeTrigger");
+        // Trigger appropriate dodge animation based on grounded state
+        if (isGrounded)
+        {
+            anim.SetTrigger("Dodge");
+        }
+        else
+        {
+            anim.SetTrigger("AirDodge");
+        }
         // TODO: add invincibility frames and movement impulse
     }
     */
@@ -113,9 +120,22 @@ public class PlayerController : MonoBehaviour
     public void PlayDodge()
     {
         if (!canMove) return;
-        // Trigger dodge animation / perfect evasion logic
-        anim.SetTrigger("DodgeTrigger");
-        // TODO: add invincibility frames and movement impulse
+
+        // Determine appropriate dodge animation based on grounded state
+        if (isGrounded)
+        {
+            // Ground dodge animation
+            anim.SetTrigger("Dodge");
+            Debug.Log("PlayerController: Playing Dodge animation (grounded)");
+        }
+        else
+        {
+            // Air dodge animation
+            anim.SetTrigger("AirDodge");
+            Debug.Log("PlayerController: Playing AirDodge animation (in air)");
+        }
+
+        // TODO: add invincibility frames and movement impulse (handled by DodgeSkill)
     }
 
     // ---- Movement & Gravity ----

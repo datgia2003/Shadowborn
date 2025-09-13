@@ -785,9 +785,7 @@ public class SliceUpSkill : MonoBehaviour
 
         foreach (var c in targets)
         {
-            c.SendMessage("TakeDamage", loantRamDamagePerTick, SendMessageOptions.DontRequireReceiver);
-            c.SendMessage("ApplyDamage", loantRamDamagePerTick, SendMessageOptions.DontRequireReceiver);
-            c.SendMessage("Damage", loantRamDamagePerTick, SendMessageOptions.DontRequireReceiver);
+            SkillDamageUtility.ApplyDamageToTarget(c.gameObject, loantRamDamagePerTick, "SliceUp Loạn Trảm");
         }
     }
 
