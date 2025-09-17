@@ -94,7 +94,11 @@ MonoBehaviour:
   TargetMask:
     serializedVersion: 2
     m_Bits: 128
-  Owner: {fileID: 0}
+  hitFXs: []
+  hitSound: {fileID: 0}
+  hitSoundVolume: 30
+  impulseSource: {fileID: 0}
+  swingAudioSource: {fileID: 0}
 --- !u!1 &3255050938161373227
 GameObject:
   m_ObjectHideFlags: 0
@@ -173,7 +177,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 379524057
-  m_SortingLayer: 2
+  m_SortingLayer: 8
   m_SortingOrder: 0
   m_Sprite: {fileID: -289158890, guid: 97a111f3048059c49a94fd52dffee24e, type: 3}
   m_Color: {r: 0.7686275, g: 0.7686275, b: 0.7686275, a: 1}
@@ -291,6 +295,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30df638b14d99f54d814be9e68d08401, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  healthPotionPrefab: {fileID: 7747395786966917667, guid: 666da093c32dd5b4080b95cbb9436bfa, type: 3}
+  manaPotionPrefab: {fileID: 4696662561988549705, guid: a2ec62e1ff93f014db897c63042a1915, type: 3}
+  coinPrefab: {fileID: 4517728076275760106, guid: a98aa289568c12a4c8059002bf271b2c, type: 3}
+  healthPotionDropRate: 1
+  manaPotionDropRate: 1
+  coinDropRate: 1
+  coinDropMin: 1
+  coinDropMax: 5
   moveSpeed: 5
   chaseRange: 8
   attackRange: 3.25
@@ -415,4 +427,8 @@ MonoBehaviour:
   TargetMask:
     serializedVersion: 2
     m_Bits: 128
-  Owner: {fileID: 0}
+  hitFXs: []
+  hitSound: {fileID: 0}
+  hitSoundVolume: 30
+  impulseSource: {fileID: 0}
+  swingAudioSource: {fileID: 0}

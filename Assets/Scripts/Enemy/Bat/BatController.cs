@@ -5,6 +5,15 @@ using UnityEngine;
 ]
 public class BatController : MonoBehaviour
 {
+    [Header("Item Drop")]
+    public GameObject healthPotionPrefab;
+    public GameObject manaPotionPrefab;
+    public GameObject coinPrefab;
+    [Range(0f, 1f)] public float healthPotionDropRate = 0.2f;
+    [Range(0f, 1f)] public float manaPotionDropRate = 0.15f;
+    [Range(0f, 1f)] public float coinDropRate = 0.5f;
+    public int coinDropMin = 1;
+    public int coinDropMax = 5;
     [Header("Stats")]
     public float moveSpeed = 3f;
     public float chaseRange = 5f;
@@ -135,8 +144,48 @@ public class BatController : MonoBehaviour
         }
     }
 
-    void Die()
+
+    public void TryDropItems()
     {
+        Debug.Log($"[ItemDrop] TryDropItems called. Prefabs: HP={healthPotionPrefab}, MP={manaPotionPrefab}, Coin={coinPrefab}. Rates: HP={healthPotionDropRate}, MP={manaPotionDropRate}, Coin={coinDropRate}");
+        // Health Potion
+        if (healthPotionPrefab != null && Random.value < healthPotionDropRate)
+        {
+            Vector3 offset = new Vector3(Random.Range(-0.5f, 0.5f), 0.2f, 0f);
+            Vector3 dropPos = transform.position + offset;
+            var obj = Instantiate(healthPotionPrefab, dropPos, Quaternion.identity);
+            var rb = obj.GetComponent<Rigidbody2D>();
+            if (rb != null) rb.gravityScale = 1.5f;
+            Debug.Log($"[ItemDrop] Spawned HealthPotion at {dropPos}");
+        }
+        // Mana Potion
+        if (manaPotionPrefab != null && Random.value < manaPotionDropRate)
+        {
+            Vector3 offset = new Vector3(Random.Range(-0.5f, 0.5f), 0.2f, 0f);
+            Vector3 dropPos = transform.position + offset;
+            var obj = Instantiate(manaPotionPrefab, dropPos, Quaternion.identity);
+            var rb = obj.GetComponent<Rigidbody2D>();
+            if (rb != null) rb.gravityScale = 1.5f;
+            Debug.Log($"[ItemDrop] Spawned ManaPotion at {dropPos}");
+        }
+        // Coin
+        if (coinPrefab != null && Random.value < coinDropRate)
+        {
+            Vector3 offset = new Vector3(Random.Range(-0.5f, 0.5f), 0.2f, 0f);
+            Vector3 dropPos = transform.position + offset;
+            int coinAmount = Random.Range(coinDropMin, coinDropMax + 1);
+            var coinObj = Instantiate(coinPrefab, dropPos, Quaternion.identity);
+            var coin = coinObj.GetComponent<Coin>();
+            if (coin != null) coin.amount = coinAmount;
+            var rb = coinObj.GetComponent<Rigidbody2D>();
+            if (rb != null) rb.gravityScale = 1.5f;
+            Debug.Log($"[ItemDrop] Spawned Coin x{coinAmount} at {dropPos}");
+        }
+    }
+    void Die()
+
+    {
+        TryDropItems();
         isDead = true;
         currentState = State.Dead;
         anim.SetTrigger("Die");

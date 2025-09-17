@@ -5,6 +5,20 @@ using UnityEngine.InputSystem;
 // [RequireComponent(typeof(Animator))]
 public class PlayerController : MonoBehaviour
 {
+    [Header("Buffs")]
+    public bool canDoubleJump = false;
+    public int dodgeCharges = 1;
+    public int maxHP = 100;
+    public int maxMP = 50;
+    public int currentHP = 100;
+    public int currentMP = 50;
+    public int statPoints = 0;
+
+    public void AddStatPoints(int points)
+    {
+        statPoints += points;
+        // Optionally, update UI or trigger stat panel refresh here
+    }
     [Header("Movement")]
     public float walkSpeed = 7f;
     public float runSpeed = 18f;
@@ -25,10 +39,20 @@ public class PlayerController : MonoBehaviour
     Vector2 moveInput;
     public bool isGrounded;
 
+    // Public property to access moveInput from other scripts
+    public Vector2 MoveInput => moveInput;
+
+    // Flag to temporarily disable animator parameter updates during special moves
+    public bool disableAnimatorUpdates = false;
+
+
     // Jump buffer
     bool jumpBuffered;
     float jumpBufferTimer;
     const float jumpBufferDuration = 0.1f;
+
+    // Double jump logic
+    int jumpCount = 0;
 
     // Run state via Shift hold
     bool isRunning;
@@ -63,6 +87,8 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundMask);
+        // Reset jump count when grounded
+        if (isGrounded) jumpCount = 0;
         // Read run input by checking if shift is held
         if (canMove)
         {
@@ -72,7 +98,12 @@ public class PlayerController : MonoBehaviour
         }
 
         HandleJumpBuffer();
-        UpdateAnimatorParams();
+
+        // Only update animator params if not disabled by special moves (like dodge)
+        if (!disableAnimatorUpdates)
+        {
+            UpdateAnimatorParams();
+        }
     }
 
     void FixedUpdate()
@@ -119,6 +150,13 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void PlayDodge()
     {
+        // Skip if animator updates are disabled (DodgeSkill is handling it)
+        if (disableAnimatorUpdates)
+        {
+            Debug.Log("PlayerController: PlayDodge skipped - DodgeSkill is handling animation");
+            return;
+        }
+
         if (!canMove) return;
 
         // Determine appropriate dodge animation based on grounded state
@@ -145,13 +183,27 @@ public class PlayerController : MonoBehaviour
         float speed = isRunning ? runSpeed : walkSpeed;
         rb.velocity = new Vector2(dir * speed, rb.velocity.y);
 
-        if (Mathf.Abs(dir) > 0.01f)
+        // Only handle sprite flipping if not during dodge (DodgeSkill handles its own flipping)
+        if (Mathf.Abs(dir) > 0.01f && !disableAnimatorUpdates)
             transform.localScale = new Vector3(Mathf.Sign(dir), 1f, 1f);
 
-        if (jumpBuffered && isGrounded)
+        if (jumpBuffered)
         {
-            jumpBuffered = false;
-            rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+            // Ground jump
+            if (isGrounded)
+            {
+                jumpBuffered = false;
+                rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+                jumpCount = 1;
+            }
+            // Double jump
+            else if (canDoubleJump && jumpCount < 2)
+            {
+                jumpBuffered = false;
+                rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+                jumpCount++;
+                // Optionally: play double jump animation/effect here
+            }
         }
     }
 

@@ -144,8 +144,6 @@ public class PlayerResources : MonoBehaviour
                 int manaToAdd = Mathf.FloorToInt(manaRegenAccumulated);
                 AddMana(manaToAdd);
                 manaRegenAccumulated -= manaToAdd; // Keep the fractional part
-
-                Debug.Log($"🔮 Mana regen: +{manaToAdd} (rate: {manaRegenRate}/sec, accumulated: {manaRegenAccumulated:F2})");
             }
         }
         else
@@ -186,7 +184,7 @@ public class PlayerResources : MonoBehaviour
         if (dodgeSkill != null && dodgeSkill.IsInvincible())
         {
             Debug.Log("🛡️ Damage blocked by dodge invincibility!");
-            
+
             // Notify dodge skill about damage attempt (for perfect dodge detection)
             dodgeSkill.OnDamageTaken();
             return;
@@ -279,7 +277,6 @@ public class PlayerResources : MonoBehaviour
 
         if (previousMana != currentMana)
         {
-            Debug.Log($"🔮 AddMana: {previousMana} → {currentMana} (added: {amount})");
             OnManaChanged?.Invoke(currentMana, maxMana);
         }
     }

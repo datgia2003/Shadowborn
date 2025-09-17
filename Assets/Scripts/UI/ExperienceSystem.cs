@@ -14,6 +14,7 @@ public class ExperienceSystem : MonoBehaviour
 
     [Header("💰 Experience Rewards")]
     [SerializeField] private int batEnemyExp = 50;
+    [SerializeField] private int skeletonEnemyExp = 75;
     [SerializeField] private int bossEnemyExp = 200;
     [SerializeField] private int questCompleteExp = 100;
     [SerializeField] private int skillUseExp = 2;
@@ -78,12 +79,15 @@ public class ExperienceSystem : MonoBehaviour
     /// </summary>
     public void GainExpFromEnemy(string enemyType)
     {
-        int expAmount = enemyType.ToLower() switch
+        string type = enemyType.Trim().ToLower();
+        int expAmount = 10;
+        if (type.Contains("bat")) expAmount = batEnemyExp;
+        else if (type.Contains("skeleton")) expAmount = skeletonEnemyExp;
+        else if (type.Contains("boss")) expAmount = bossEnemyExp;
+        if (showDebugLogs)
         {
-            "bat" => batEnemyExp,
-            "boss" => bossEnemyExp,
-            _ => 10 // Default fallback
-        };
+            Debug.Log($"[EXP] GainExpFromEnemy called with type: '{enemyType}' (normalized: '{type}'), exp: {expAmount}");
+        }
 
         GainExperience($"Enemy ({enemyType})", expAmount);
     }

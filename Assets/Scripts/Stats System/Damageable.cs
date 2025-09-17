@@ -183,12 +183,24 @@ public class Damageable : MonoBehaviour, IDamageable
             {
                 experienceSystem.GainExpFromEnemy("bat");
                 Debug.Log("💀 Bat defeated via Damageable → +50 EXP awarded to player");
+                batController.TryDropItems();
             }
             else
             {
-                // Generic enemy fallback
-                experienceSystem.GainExperience("Enemy (Unknown)", 10);
-                Debug.Log("💀 Enemy defeated via Damageable → +10 EXP awarded to player");
+                // Check if this is a skeleton enemy
+                var skeletonController = GetComponent<SkeletonController>();
+                if (skeletonController != null)
+                {
+                    experienceSystem.GainExpFromEnemy("skeleton");
+                    Debug.Log("💀 Skeleton defeated via Damageable → +75 EXP awarded to player");
+                    skeletonController.TryDropItems();
+                }
+                else
+                {
+                    // Generic enemy fallback
+                    experienceSystem.GainExperience("Enemy (Unknown)", 10);
+                    Debug.Log("💀 Enemy defeated via Damageable → +10 EXP awarded to player");
+                }
             }
         }
 

@@ -41,6 +41,7 @@ public class BackgroundFollower : MonoBehaviour
     private Vector3 _initialWorldPos;
     private Vector3 _parallaxBaseOffset; // offset nội tại nếu auto capture
     private bool _initialized;
+    private bool _offsetCaptured; // Flag để track nếu offset đã được capture
 
     void Awake()
     {
@@ -59,16 +60,12 @@ public class BackgroundFollower : MonoBehaviour
         if (targetCamera == null) return;
 
         _initialWorldPos = transform.position;
-        if (mode == FollowMode.Parallax && autoCaptureStartOffset)
-        {
-            Vector3 camPos = targetCamera.transform.position;
-            _parallaxBaseOffset = _initialWorldPos - new Vector3(camPos.x * parallaxFactorX, camPos.y * parallaxFactorY, 0f);
-        }
-        else
-        {
-            _parallaxBaseOffset = worldOffset;
-        }
+        // Simplified - no more complex offset capture needed
+        // Just use worldOffset directly for any static offset requirements
+        _parallaxBaseOffset = worldOffset;
+
         _initialized = true;
+        Debug.Log($"BackgroundFollower initialized in {mode} mode - simplified camera follow");
     }
 
     void LateUpdate()
@@ -80,8 +77,14 @@ public class BackgroundFollower : MonoBehaviour
 
         if (mode == FollowMode.Parallax)
         {
+            // Simplified: Just follow camera with parallax factors
             Vector3 camPos = targetCamera.transform.position;
-            targetPos = new Vector3(camPos.x * parallaxFactorX, camPos.y * parallaxFactorY, lockZ ? transform.position.z : camPos.z) + _parallaxBaseOffset;
+            targetPos = new Vector3(
+                camPos.x * parallaxFactorX,
+                camPos.y * parallaxFactorY,
+                lockZ ? transform.position.z : camPos.z
+            );
+            // Add world offset
             targetPos += new Vector3(worldOffset.x, worldOffset.y, lockZ ? 0f : worldOffset.z);
         }
         else if (mode == FollowMode.ViewportAnchor)
@@ -115,7 +118,37 @@ public class BackgroundFollower : MonoBehaviour
     public void Reinitialize()
     {
         _initialized = false;
+        _offsetCaptured = false; // Reset offset capture flag để force recapture
         Initialize();
+    }
+
+    /// <summary>
+    /// Force recapture of parallax offset - now simplified to just reset to camera follow
+    /// </summary>
+    public void RecaptureOffset()
+    {
+        Debug.Log($"BackgroundFollower: Recapture called - now using simplified camera follow");
+        // With simplified logic, no complex offset capture needed
+        // Background will just follow camera based on parallax factors
+    }
+
+    /// <summary>
+    /// Debug method để xem current status
+    /// </summary>
+    [ContextMenu("Debug Background Status")]
+    public void DebugStatus()
+    {
+        if (targetCamera == null) targetCamera = Camera.main;
+        Debug.Log($"=== BackgroundFollower Debug ===");
+        Debug.Log($"Mode: {mode}");
+        Debug.Log($"AutoCapture: {autoCaptureStartOffset}");
+        Debug.Log($"Initialized: {_initialized}");
+        Debug.Log($"OffsetCaptured: {_offsetCaptured}");
+        Debug.Log($"Current Position: {transform.position}");
+        Debug.Log($"Camera Position: {(targetCamera ? targetCamera.transform.position.ToString() : "NULL")}");
+        Debug.Log($"Parallax Factors: X={parallaxFactorX}, Y={parallaxFactorY}");
+        Debug.Log($"Base Offset: {_parallaxBaseOffset}");
+        Debug.Log($"World Offset: {worldOffset}");
     }
 
 #if UNITY_EDITOR

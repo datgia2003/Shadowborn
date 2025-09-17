@@ -287,7 +287,6 @@ public class EnhancedPlayerHUD : MonoBehaviour
         float healthPercent = (float)currentHealth / maxHealth;
         float previousPercent = lastHealthValue;
 
-        Debug.Log($"🩸 UpdateHealthDisplay: {currentHealth}/{maxHealth} = {healthPercent:F2}");
 
         // Handle ghost trail for health loss
         if (enableGhostTrail && healthPercent < previousPercent)
@@ -396,7 +395,6 @@ public class EnhancedPlayerHUD : MonoBehaviour
         float manaPercent = (float)currentMana / maxMana;
         float previousPercent = lastManaValue;
 
-        Debug.Log($"🔮 UpdateManaDisplay: {currentMana}/{maxMana} = {manaPercent:F2}");
 
         // Handle ghost trail for mana loss
         if (enableGhostTrail && manaPercent < previousPercent)
@@ -552,7 +550,6 @@ public class EnhancedPlayerHUD : MonoBehaviour
     {
         // For multi-level ups, just trigger the same effects as single level up
         // but update to the final level
-        Debug.Log($"EnhancedPlayerHUD: Multi-level up from {startLevel} to {endLevel}");
 
         // Level up particle effect
         if (levelUpParticles != null && enableParticleEffects)
@@ -625,7 +622,6 @@ public class EnhancedPlayerHUD : MonoBehaviour
         float startValue = slider.value;
         float time = 0;
 
-        Debug.Log($"🎛️ AnimateBar: {startValue:F2} → {targetValue:F2}");
 
         while (time < barAnimationSpeed)
         {
@@ -637,7 +633,6 @@ public class EnhancedPlayerHUD : MonoBehaviour
         }
 
         slider.value = targetValue;
-        Debug.Log($"✅ AnimateBar complete: Final value = {slider.value:F2}");
     }
 
     private void StartGhostTrail(Image ghostTrail, float fromValue, float toValue)

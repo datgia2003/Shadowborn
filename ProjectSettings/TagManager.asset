@@ -20,7 +20,7 @@ TagManager:
   - ProjectileLayer
   - Summoner
   - Boss
-  - 
+  - Item
   - 
   - 
   - 
@@ -60,6 +60,9 @@ TagManager:
     locked: 0
   - name: Summoner
     uniqueID: 3145988645
+    locked: 0
+  - name: Item
+    uniqueID: 719696593
     locked: 0
   - name: Player
     uniqueID: 379524057

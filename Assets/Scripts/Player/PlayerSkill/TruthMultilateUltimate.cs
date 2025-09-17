@@ -1970,7 +1970,6 @@ public class TruthMultilateUltimate : MonoBehaviour
             // DISABLE FOLLOW TARGET to prevent camera from following player
             originalCameraFollow = virtualCamera.Follow;
             virtualCamera.Follow = null; // Disable follow during ultimate
-            Debug.Log($"Disabled Cinemachine Follow. Original target: {originalCameraFollow?.name ?? "None"}");
 
             // Calculate cinematic position centered on PRIMARY TARGET (first enemy hit)
             Vector3 cinematicPosition = Vector3.zero;
@@ -1982,7 +1981,6 @@ public class TruthMultilateUltimate : MonoBehaviour
                     primaryTarget.position.y, // Same Y level as enemy for better focus
                     virtualCamera.transform.position.z // Keep original Z
                 );
-                Debug.Log($"Camera focusing on primary target: {primaryTarget.name} at {primaryTarget.position}");
             }
             else
             {
@@ -1992,7 +1990,6 @@ public class TruthMultilateUltimate : MonoBehaviour
                     ultimateCenterPosition.y,
                     virtualCamera.transform.position.z
                 );
-                Debug.Log($"Camera focusing on ultimate center: {ultimateCenterPosition}");
             }
 
             // Target cinematic size to ZOOM IN but cover all FX properly
@@ -2001,7 +1998,6 @@ public class TruthMultilateUltimate : MonoBehaviour
 
             // IMMEDIATELY set camera position (no transition for positioning)
             virtualCamera.transform.position = cinematicPosition;
-            Debug.Log($"Virtual Camera IMMEDIATELY positioned at: {cinematicPosition}");
 
             // Smooth zoom transition for size only
             float elapsed = 0f;
@@ -2019,7 +2015,6 @@ public class TruthMultilateUltimate : MonoBehaviour
             virtualCamera.m_Lens.OrthographicSize = targetSize;
             isCameraZoomed = true;
 
-            Debug.Log($"Cinemachine Camera ZOOMED IN for focus - Original Size: {originalVirtualCameraSize}, Target Size: {targetSize}, Position: {cinematicPosition}");
         }
         else if (mainCamera != null)
         {
@@ -2037,7 +2032,6 @@ public class TruthMultilateUltimate : MonoBehaviour
                     primaryTarget.position.y, // Same Y level as enemy for better focus
                     originalCameraPosition.z
                 );
-                Debug.Log($"Regular Camera focusing on primary target: {primaryTarget.name} at {primaryTarget.position}");
             }
             else
             {
@@ -2047,7 +2041,6 @@ public class TruthMultilateUltimate : MonoBehaviour
                     ultimateCenterPosition.y,
                     originalCameraPosition.z
                 );
-                Debug.Log($"Regular Camera focusing on ultimate center: {ultimateCenterPosition}");
             }
 
             float damageAreaRadius = hitRadius * 3f; // Larger radius to cover all FX
@@ -2071,7 +2064,6 @@ public class TruthMultilateUltimate : MonoBehaviour
             mainCamera.orthographicSize = targetSize;
             isCameraZoomed = true;
 
-            Debug.Log($"Regular Camera ZOOMED IN for focus - Original Size: {originalCameraSize}, Target Size: {targetSize}, Position: {cinematicPosition}");
         }
     }
 
@@ -2101,11 +2093,9 @@ public class TruthMultilateUltimate : MonoBehaviour
 
             // RESTORE FOLLOW TARGET
             virtualCamera.Follow = originalCameraFollow;
-            Debug.Log($"Restored Cinemachine Follow target: {originalCameraFollow?.name ?? "None"}");
 
             isCameraZoomed = false;
 
-            Debug.Log("Cinemachine Camera restored to original settings after ultimate");
         }
         else if (mainCamera != null)
         {

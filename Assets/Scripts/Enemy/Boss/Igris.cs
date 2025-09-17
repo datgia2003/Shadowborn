@@ -6,6 +6,51 @@ using UnityEngine.UI;
 [RequireComponent(typeof(Animator))]
 public class Igris : MonoBehaviour, IDamageable
 {
+    public bool IsAlive => currentHP > 0 && currentState != BossState.Dead;
+    [Header("Item Drop Prefabs")]
+    public GameObject healthPotionPrefab;
+    public GameObject manaPotionPrefab;
+    public GameObject coinPrefab;
+    [Header("Item Drop Settings")]
+    public int minDropCount = 1;
+    public int maxDropCount = 3;
+    public float dropRadius = 1.2f;
+    public float itemGravityScale = 2.5f;
+
+    /// <summary>
+    /// Call this to drop items at Igris's position. Call from death logic.
+    /// </summary>
+    public void TryDropItems()
+    {
+        int dropCount = Random.Range(minDropCount, maxDropCount + 1);
+        for (int i = 0; i < dropCount; i++)
+        {
+            GameObject prefab = GetRandomItemPrefab();
+            if (prefab == null) continue;
+            Vector2 offset = Random.insideUnitCircle * dropRadius;
+            Vector3 spawnPos = transform.position + new Vector3(offset.x, offset.y, 0);
+            GameObject item = Instantiate(prefab, spawnPos, Quaternion.identity);
+            Rigidbody2D rb2d = item.GetComponent<Rigidbody2D>();
+            if (rb2d != null)
+            {
+                rb2d.gravityScale = itemGravityScale;
+                rb2d.velocity = new Vector2(Random.Range(-1.5f, 1.5f), Random.Range(2.5f, 4.5f));
+            }
+            Debug.Log($"Igris dropped item: {item.name} at {spawnPos}");
+        }
+    }
+
+    private GameObject GetRandomItemPrefab()
+    {
+        int r = Random.Range(0, 3);
+        switch (r)
+        {
+            case 0: return healthPotionPrefab;
+            case 1: return manaPotionPrefab;
+            case 2: return coinPrefab;
+            default: return coinPrefab;
+        }
+    }
     public enum BossState
     {
         Intro,
@@ -1362,14 +1407,28 @@ public class Igris : MonoBehaviour, IDamageable
         {
             currentHP = 0;
             ChangeState(BossState.Dead);
+            TryDropItems(); // Drop items on death
+            ShowBuffSelectionUI(); // Show buff selection after boss dies
+            Destroy(gameObject); // Destroy Igris after death
         }
         else
         {
             ChangeState(BossState.Stagger);
-            // quay lại idle sau 1s
             Invoke(nameof(EnterIdle), 1f);
         }
+
     }
+
+    // Call this to show buff selection UI after boss dies
+    private void ShowBuffSelectionUI()
+    {
+        BuffSelectionUI buffUI = FindObjectOfType<BuffSelectionUI>();
+        if (buffUI != null)
+        {
+            buffUI.ShowBuffSelection();
+        }
+    }
+
 
     // Gọi từ Enrage animation event
     public void FinishEnrage()
@@ -1494,7 +1553,6 @@ public class Igris : MonoBehaviour, IDamageable
 
     // ===== IDAMAGEABLE INTERFACE IMPLEMENTATION =====
 
-    public bool IsAlive => currentHP > 0 && currentState != BossState.Dead;
 
     // IDamageable interface requires TakeHit(float dmg)
     public void TakeHit(float dmg)

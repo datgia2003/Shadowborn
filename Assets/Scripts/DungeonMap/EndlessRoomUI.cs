@@ -17,6 +17,12 @@ public class EndlessRoomUI : MonoBehaviour
     [Tooltip("Text hiển thị số room active")]
     [SerializeField] private TextMeshProUGUI activeRoomsText;
 
+    [Tooltip("Text hiển thị current room type")]
+    [SerializeField] private TextMeshProUGUI roomTypeText;
+
+    [Tooltip("Text hiển thị boss countdown")]
+    [SerializeField] private TextMeshProUGUI bossCountdownText;
+
     [Tooltip("Slider hoặc bar hiển thị progress")]
     [SerializeField] private Slider progressSlider;
 
@@ -91,6 +97,9 @@ public class EndlessRoomUI : MonoBehaviour
 
         // Update difficulty
         UpdateDifficultyText(currentDifficulty);
+
+        // Update room type and boss countdown
+        UpdateRoomTypeAndBossInfo();
 
         // Update progress slider if available
         UpdateProgressSlider(currentDifficulty);
@@ -168,6 +177,54 @@ public class EndlessRoomUI : MonoBehaviour
         }
 
         target.localScale = endScale;
+    }
+
+    /// <summary>
+    /// Update room type and boss countdown info
+    /// </summary>
+    private void UpdateRoomTypeAndBossInfo()
+    {
+        if (RoomManager.Instance == null) return;
+
+        // Update current room type
+        string roomType = RoomManager.Instance.GetCurrentRoomType();
+        if (roomTypeText != null)
+        {
+            roomTypeText.text = $"Room Type: {roomType}";
+
+            // Color code based on room type
+            if (roomType == "Boss")
+            {
+                roomTypeText.color = Color.red;
+            }
+            else
+            {
+                roomTypeText.color = Color.white;
+            }
+        }
+
+        // Update boss countdown
+        if (bossCountdownText != null)
+        {
+            int roomsUntilBoss = RoomManager.Instance.GetRoomsUntilNextBoss();
+            bool isNextBoss = RoomManager.Instance.IsNextRoomBoss();
+
+            if (roomType == "Boss")
+            {
+                bossCountdownText.text = "🔥 BOSS FIGHT! 🔥";
+                bossCountdownText.color = Color.red;
+            }
+            else if (isNextBoss)
+            {
+                bossCountdownText.text = "⚠️ NEXT: BOSS ROOM ⚠️";
+                bossCountdownText.color = Color.yellow;
+            }
+            else
+            {
+                bossCountdownText.text = $"Boss in: {roomsUntilBoss} rooms";
+                bossCountdownText.color = Color.cyan;
+            }
+        }
     }
 
     private void CheckMilestones(int difficulty, int roomsCleared)

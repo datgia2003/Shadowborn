@@ -7,8 +7,18 @@ using UnityEngine;
 public class RoomManager : MonoBehaviour
 {
     [Header("🏠 Room Configuration")]
-    [Tooltip("Danh sách các prefab room có thể spawn")]
-    public List<GameObject> roomPrefabs = new List<GameObject>();
+    [Tooltip("Danh sách các prefab room thường")]
+    public List<GameObject> normalRoomPrefabs = new List<GameObject>();
+
+    [Tooltip("Danh sách các prefab boss room")]
+    public List<GameObject> bossRoomPrefabs = new List<GameObject>();
+
+    [Header("🎮 Boss Room Settings")]
+    [Tooltip("Số room thường giữa mỗi boss room")]
+    [SerializeField] private int normalRoomsBetweenBoss = 2;
+
+    [Tooltip("Counter để track room từ boss cuối")]
+    [SerializeField] private int roomsSinceLastBoss = 0;
 
     [Header("🎮 Gameplay Settings")]
     [Tooltip("Số lượng room tối đa được giữ active cùng lúc")]
@@ -23,6 +33,14 @@ public class RoomManager : MonoBehaviour
 
     [Tooltip("Tổng số room đã spawn")]
     [SerializeField] private int totalRoomsSpawned = 0;
+
+    [Tooltip("Loại room hiện tại (Normal/Boss)")]
+    [SerializeField] private string currentRoomType = "Normal";
+
+    // Legacy support (deprecated)
+    [HideInInspector]
+    [Tooltip("Danh sách các prefab room có thể spawn")]
+    public List<GameObject> roomPrefabs = new List<GameObject>();
 
     // Private variables
     private readonly List<GameObject> activeRooms = new List<GameObject>(); // Danh sách room đang active
@@ -48,12 +66,25 @@ public class RoomManager : MonoBehaviour
 
     private void Start()
     {
-        // Kiểm tra xem có room prefab nào được gán không
-        if (roomPrefabs == null || roomPrefabs.Count == 0)
+        // Validate room prefabs
+        bool hasNormalRooms = normalRoomPrefabs != null && normalRoomPrefabs.Count > 0;
+        bool hasLegacyRooms = roomPrefabs != null && roomPrefabs.Count > 0;
+
+        if (!hasNormalRooms && !hasLegacyRooms)
         {
-            Debug.LogError("❌ RoomManager: Không có room prefab nào! Hãy gán room prefabs vào list.");
+            Debug.LogError("❌ RoomManager: Không có room prefab nào! Hãy gán Normal Room Prefabs hoặc Room Prefabs (legacy).");
             return;
         }
+
+        // Validate boss rooms
+        bool hasBossRooms = bossRoomPrefabs != null && bossRoomPrefabs.Count > 0;
+        if (!hasBossRooms)
+        {
+            Debug.LogWarning("⚠️ RoomManager: Không có Boss Room Prefabs. System sẽ chỉ spawn normal rooms.");
+        }
+
+        Debug.Log($"🏠 RoomManager initialized: {(hasNormalRooms ? normalRoomPrefabs.Count : roomPrefabs.Count)} normal rooms, {(hasBossRooms ? bossRoomPrefabs.Count : 0)} boss rooms");
+        Debug.Log($"🎯 Boss Pattern: Every {normalRoomsBetweenBoss} normal rooms → 1 boss room");
 
         // Spawn room đầu tiên tại vị trí start
         SpawnFirstRoom();
@@ -66,17 +97,24 @@ public class RoomManager : MonoBehaviour
     {
         Debug.Log("🏠 RoomManager: Spawning first room...");
 
-        // Chọn room đầu tiên (có thể random hoặc fixed)
-        GameObject firstRoomPrefab = roomPrefabs[0];
+        // Always start with a normal room
+        GameObject firstRoomPrefab = SelectRoomPrefab(false); // false = normal room
         if (firstRoomPrefab == null)
         {
-            Debug.LogError("❌ RoomManager: Room prefab đầu tiên null!");
+            Debug.LogError("❌ RoomManager: First room prefab is null!");
             return;
         }
 
         // Spawn room tại vị trí start
         GameObject firstRoom = Instantiate(firstRoomPrefab, startPosition, Quaternion.identity);
-        firstRoom.name = $"Room_01_Difficulty_{difficultyLevel}";
+        firstRoom.name = $"Room_01_Normal_Difficulty_{difficultyLevel}";
+        currentRoomType = "Normal";
+
+        // Initialize counter - first room counts as 1 normal room
+        roomsSinceLastBoss = 1;
+
+        Debug.Log($"🎯 First room spawned! Pattern status: {roomsSinceLastBoss}/{normalRoomsBetweenBoss}");
+        Debug.Log($"📊 After first room - Next boss in: {GetRoomsUntilNextBoss()} rooms, Next room will be: {(IsNextRoomBoss() ? "BOSS" : "Normal")}");
 
         // Thêm vào danh sách active rooms
         activeRooms.Add(firstRoom);
@@ -93,24 +131,46 @@ public class RoomManager : MonoBehaviour
     /// </summary>
     public void SpawnNextRoom()
     {
-        if (roomPrefabs == null || roomPrefabs.Count == 0)
+        // Validation with new system
+        if ((normalRoomPrefabs == null || normalRoomPrefabs.Count == 0) &&
+            (roomPrefabs == null || roomPrefabs.Count == 0))
         {
-            Debug.LogError("❌ RoomManager: Không có room prefab để spawn!");
+            Debug.LogError("❌ RoomManager: Không có room prefab để spawn! Hãy gán Normal Room Prefabs.");
             return;
         }
 
         Debug.Log($"🚪 RoomManager: Player reached exit! Spawning next room (Difficulty {difficultyLevel + 1})...");
+        Debug.Log($"🔍 Before spawn check: roomsSinceLastBoss = {roomsSinceLastBoss}");
 
         // Tăng difficulty level
         difficultyLevel++;
 
-        // Chọn random một room prefab
-        int randomIndex = Random.Range(0, roomPrefabs.Count);
-        GameObject roomPrefab = roomPrefabs[randomIndex];
+        // Determine room type based on boss pattern
+        // We need to check based on what the count WILL BE after spawning a normal room
+        int nextNormalRoomCount = roomsSinceLastBoss + 1;
+        bool shouldSpawnBoss = nextNormalRoomCount >= normalRoomsBetweenBoss &&
+                              bossRoomPrefabs != null && bossRoomPrefabs.Count > 0;
+
+        Debug.Log($"🎯 Next normal room count would be: {nextNormalRoomCount}, Should spawn boss: {shouldSpawnBoss}");
+
+        GameObject roomPrefab = SelectRoomPrefab(shouldSpawnBoss);
+
         if (roomPrefab == null)
         {
-            Debug.LogError("❌ RoomManager: Room prefab random null!");
+            Debug.LogError("❌ RoomManager: Selected room prefab is null!");
             return;
+        }
+
+        // Update room type tracking and counter
+        if (shouldSpawnBoss)
+        {
+            currentRoomType = "Boss";
+            roomsSinceLastBoss = 0; // Reset counter after boss room
+        }
+        else
+        {
+            currentRoomType = "Normal";
+            roomsSinceLastBoss++; // Increment for normal room
         }
 
         // Tính toán vị trí spawn dựa trên Exit của room hiện tại và Entry offset của prefab được chọn
@@ -119,7 +179,10 @@ public class RoomManager : MonoBehaviour
 
         // Spawn room mới tại vị trí đã tính toán
         GameObject newRoom = Instantiate(roomPrefab, spawnPos, Quaternion.identity);
-        newRoom.name = $"Room_{totalRoomsSpawned + 1:D2}_Difficulty_{difficultyLevel}";
+        newRoom.name = $"Room_{totalRoomsSpawned + 1:D2}_{currentRoomType}_Difficulty_{difficultyLevel}";
+
+        Debug.Log($"🏠 Spawned {currentRoomType} Room! Rooms since last boss: {roomsSinceLastBoss} (Next boss in: {GetRoomsUntilNextBoss()} rooms)");
+        Debug.Log($"📊 Pattern Status: {roomsSinceLastBoss}/{normalRoomsBetweenBoss} - Next room will be: {(IsNextRoomBoss() ? "BOSS" : "Normal")}");
 
         // Thêm room mới vào active list
         activeRooms.Add(newRoom);
@@ -238,20 +301,100 @@ public class RoomManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Event được gọi khi room mới được spawn - có thể dùng để spawn enemies, áp dụng difficulty, etc.
+    /// Determines if we should spawn a boss room based on pattern
+    /// </summary>
+    private bool ShouldSpawnBossRoom()
+    {
+        // Pattern: 2 normal rooms → 1 boss room
+        bool shouldSpawnBoss = roomsSinceLastBoss >= normalRoomsBetweenBoss;
+
+        // Also check if we have boss room prefabs available
+        if (shouldSpawnBoss && (bossRoomPrefabs == null || bossRoomPrefabs.Count == 0))
+        {
+            Debug.LogWarning("⚠️ Should spawn boss but no boss room prefabs available. Spawning normal room instead.");
+            shouldSpawnBoss = false;
+        }
+
+        return shouldSpawnBoss;
+    }
+
+    /// <summary>
+    /// Select appropriate room prefab based on room type
+    /// </summary>
+    private GameObject SelectRoomPrefab(bool isBossRoom)
+    {
+        if (isBossRoom)
+        {
+            // Select random boss room
+            if (bossRoomPrefabs != null && bossRoomPrefabs.Count > 0)
+            {
+                int randomIndex = Random.Range(0, bossRoomPrefabs.Count);
+                return bossRoomPrefabs[randomIndex];
+            }
+        }
+        else
+        {
+            // Select random normal room
+            List<GameObject> availableRooms = normalRoomPrefabs != null && normalRoomPrefabs.Count > 0
+                ? normalRoomPrefabs
+                : roomPrefabs; // Fallback to legacy system
+
+            if (availableRooms != null && availableRooms.Count > 0)
+            {
+                int randomIndex = Random.Range(0, availableRooms.Count);
+                return availableRooms[randomIndex];
+            }
+        }
+
+        Debug.LogError($"❌ No available room prefabs for type: {(isBossRoom ? "Boss" : "Normal")}");
+        return null;
+    }
+
+    /// <summary>
+    /// Event được gọi khi room mới được spawn - spawn enemies và áp dụng difficulty
     /// </summary>
     /// <param name="difficulty">Level độ khó hiện tại</param>
     private void OnNewRoomSpawned(int difficulty)
     {
-        // TODO: Implement logic based on difficulty
-        // Ví dụ: spawn enemies, thay đổi lighting, tăng reward, etc.
+        Debug.Log($"🎯 Room spawned with difficulty {difficulty}. Setting up enemy spawning...");
 
-        Debug.Log($"🎯 Room spawned with difficulty {difficulty}. You can implement enemy spawning here!");
+        if (currentRoom != null)
+        {
+            // Check if room uses wave-based spawning
+            EnemyWaveManager waveManager = currentRoom.GetComponentInChildren<EnemyWaveManager>();
 
-        // Ví dụ implementation:
-        // - Spawn (difficulty * 2) enemies
-        // - Increase enemy stats by (difficulty * 10%)
-        // - Add special effects based on difficulty
+            if (waveManager != null)
+            {
+                // Room uses wave system - let wave manager handle spawning
+                Debug.Log($"🌊 Room uses wave-based enemy spawning with {waveManager.GetAllWaveZones().Count} waves");
+                // Wave manager will handle spawning automatically based on its configuration
+            }
+            else
+            {
+                // Room uses instant spawning
+                EnemySpawner spawner = currentRoom.GetComponentInChildren<EnemySpawner>();
+
+                if (spawner != null)
+                {
+                    // Spawn enemies immediately based on room type and difficulty
+                    spawner.SpawnEnemiesForRoom(currentRoomType, difficulty);
+                    Debug.Log($"✅ Instant enemy spawning completed in {currentRoomType} room");
+                }
+                else
+                {
+                    Debug.LogWarning($"⚠️ No EnemySpawner or EnemyWaveManager found in {currentRoomType} room. Add one to room prefab!");
+                }
+            }
+        }
+        else
+        {
+            Debug.LogError("❌ CurrentRoom is null when trying to setup enemy spawning!");
+        }
+
+        // Additional room setup based on difficulty can go here
+        // - Lighting effects
+        // - Environmental hazards
+        // - Special room modifiers
     }
 
     /// <summary>
@@ -276,6 +419,34 @@ public class RoomManager : MonoBehaviour
     public GameObject GetCurrentRoom()
     {
         return currentRoom;
+    }
+
+    /// <summary>
+    /// Get current room type (Normal/Boss)
+    /// </summary>
+    public string GetCurrentRoomType()
+    {
+        return currentRoomType;
+    }
+
+    /// <summary>
+    /// Get rooms until next boss
+    /// </summary>
+    public int GetRoomsUntilNextBoss()
+    {
+        // Calculate rooms remaining until boss
+        int roomsUntilBoss = normalRoomsBetweenBoss - roomsSinceLastBoss;
+        return Mathf.Max(0, roomsUntilBoss);
+    }
+
+    /// <summary>
+    /// Check if next room will be boss room
+    /// </summary>
+    public bool IsNextRoomBoss()
+    {
+        int nextNormalRoomCount = roomsSinceLastBoss + 1;
+        return nextNormalRoomCount >= normalRoomsBetweenBoss &&
+               bossRoomPrefabs != null && bossRoomPrefabs.Count > 0;
     }
 
     /// <summary>

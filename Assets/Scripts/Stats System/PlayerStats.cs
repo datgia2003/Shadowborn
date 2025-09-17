@@ -54,10 +54,13 @@ public class PlayerStats : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            Debug.Log("🎯 PlayerStats Instance created and set to DontDestroyOnLoad");
         }
         else
         {
+            Debug.LogWarning("🎯 Duplicate PlayerStats found - destroying this one");
             Destroy(gameObject);
+            return;
         }
     }
 
@@ -70,7 +73,7 @@ public class PlayerStats : MonoBehaviour
     private System.Collections.IEnumerator DelayedInitialization()
     {
         yield return null; // Wait 1 frame
-        
+
         // Initialize system and force update all player systems  
         Debug.Log("🎯 PlayerStats DelayedInitialization() - Force updating all player systems");
         UpdatePlayerSystems();
@@ -99,14 +102,21 @@ public class PlayerStats : MonoBehaviour
     /// </summary>
     public void AddAvailablePoints(int points)
     {
-        Debug.Log($"PlayerStats: AddAvailablePoints called with {points} points");
         availablePoints += points;
         OnPointsChanged?.Invoke(availablePoints);
-
-        Debug.Log($"PlayerStats: Firing OnPointsAwarded event with {points} points");
         OnPointsAwarded?.Invoke(points);
 
-        Debug.Log($"🎯 Received {points} stat points! Total available: {availablePoints}");
+        Debug.Log($"🎯 Added {points} stat points. Total available: {availablePoints}");
+    }
+
+    /// <summary>
+    /// DEBUG: Add test points for testing (remove in production)
+    /// </summary>
+    [ContextMenu("Add Test Points (5)")]
+    public void AddTestPoints()
+    {
+        AddAvailablePoints(5);
+        Debug.Log($"🧪 DEBUG: Added 5 test points. Total: {availablePoints}");
     }
 
     /// <summary>
@@ -218,7 +228,7 @@ public class PlayerStats : MonoBehaviour
     private void UpdatePlayerSystems()
     {
         Debug.Log($"🔄 UpdatePlayerSystems called - VIT: {vitality}, INT: {intelligence}");
-        
+
         // Update PlayerResources health and mana with same logic
         var playerResources = FindObjectOfType<PlayerResources>();
         if (playerResources != null)
@@ -244,11 +254,11 @@ public class PlayerStats : MonoBehaviour
             int manaDifference = calculatedMaxMana - oldMaxMana;
 
             Debug.Log($"📊 DIFFERENCE: Health +{healthDifference}, Mana +{manaDifference}");
-            
+
             // Update max values to match calculated values
             playerResources.maxHealth = calculatedMaxHealth;
             playerResources.maxMana = calculatedMaxMana;
-            
+
             // Only add resources if max increased (positive difference)
             if (healthDifference > 0)
             {
@@ -256,7 +266,7 @@ public class PlayerStats : MonoBehaviour
                 playerResources.AddHealth(healthDifference);
                 Debug.Log($"💚 AddHealth completed - After: {playerResources.GetCurrentHealth()}/{playerResources.maxHealth}");
             }
-            
+
             if (manaDifference > 0)
             {
                 Debug.Log($"� CALLING AddMana({manaDifference}) - Before: {playerResources.GetCurrentMana()}/{oldMaxMana}");
@@ -370,14 +380,6 @@ public class PlayerStats : MonoBehaviour
     }
 
     /// <summary>
-    /// Add test points for debugging
-    /// </summary>
-    [ContextMenu("Add 10 Test Points")]
-    public void AddTestPoints()
-    {
-        AddAvailablePoints(10);
-    }
-
     /// <summary>
     /// Test AGI allocation specifically
     /// </summary>
