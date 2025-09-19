@@ -99,7 +99,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 379524057
-  m_SortingLayer: 7
+  m_SortingLayer: 8
   m_SortingOrder: 0
   m_Sprite: {fileID: 668777240, guid: abb40f99f4db5974e90892f56b441858, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -154,11 +154,11 @@ MonoBehaviour:
   healthPotionPrefab: {fileID: 7747395786966917667, guid: 666da093c32dd5b4080b95cbb9436bfa, type: 3}
   manaPotionPrefab: {fileID: 4696662561988549705, guid: a2ec62e1ff93f014db897c63042a1915, type: 3}
   coinPrefab: {fileID: 4517728076275760106, guid: a98aa289568c12a4c8059002bf271b2c, type: 3}
-  healthPotionDropRate: 1
-  manaPotionDropRate: 1
+  healthPotionDropRate: 0.3
+  manaPotionDropRate: 0.2
   coinDropRate: 1
-  coinDropMin: 1
-  coinDropMax: 5
+  coinDropMin: 3
+  coinDropMax: 7
   footPoint: {fileID: 4327596148586889856}
   groundCheckOffsetY: -0.5
   moveSpeed: 10

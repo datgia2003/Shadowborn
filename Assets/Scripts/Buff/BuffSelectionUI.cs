@@ -1,47 +1,90 @@
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections.Generic;
+using TMPro;
 
 public class BuffSelectionUI : MonoBehaviour
 {
-    public GameObject panel;
     public BuffManager buffManager;
     public PlayerController player;
-    public Button[] buffButtons; // 3 buttons for buffs
-    public Button statPointButton; // Button for stat point conversion
-    private Buff[] currentBuffs;
+
+
+    public GameObject panel;
+    public GameObject[] buffButtonObjs = new GameObject[3];
+    public Button[] buffButtons = new Button[3];
+    public Image[] buffIcons = new Image[3];
+    public TMP_Text[] buffNames = new TMP_Text[3];
+    public TMP_Text[] buffDescs = new TMP_Text[3];
+    public Button statPointButton;
+    public TMP_Text statPointButtonText;
+
+    void Start()
+    {
+        panel.SetActive(false);
+        ShowBuffSelection();
+    }
 
     public void ShowBuffSelection()
     {
         panel.SetActive(true);
-        currentBuffs = buffManager.GetRandomBuffs(3);
-        for (int i = 0; i < buffButtons.Length; i++)
+        var buffs = buffManager.GetRandomBuffs(3);
+        Debug.Log($"[BuffSelectionUI] ShowBuffSelection: buffs count = {buffs.Length}");
+        for (int i = 0; i < 3; i++)
         {
-            buffButtons[i].gameObject.SetActive(true);
-            buffButtons[i].GetComponentInChildren<Text>().text = currentBuffs[i].buffName;
+            Debug.Log($"[BuffSelectionUI] Buff {i}: {(buffs[i] != null ? buffs[i].buffName : "null")}");
+            if (buffButtonObjs[i] != null) buffButtonObjs[i].SetActive(true);
+            if (buffIcons[i] != null)
+            {
+                buffIcons[i].enabled = true;
+                buffIcons[i].sprite = buffs[i].buffIcon;
+                Debug.Log($"[BuffSelectionUI] Icon {i}: {(buffs[i].buffIcon != null ? buffs[i].buffIcon.name : "null")}");
+            }
+            if (buffNames[i] != null)
+            {
+                buffNames[i].enabled = true;
+                buffNames[i].text = "";
+                buffNames[i].text = buffs[i].buffName ?? "Buff";
+                Debug.Log($"[BuffSelectionUI] Name {i}: {buffNames[i].text}");
+            }
+            if (buffDescs[i] != null)
+            {
+                buffDescs[i].enabled = true;
+                buffDescs[i].text = "";
+                buffDescs[i].text = buffs[i].buffDescription ?? "";
+                Debug.Log($"[BuffSelectionUI] Desc {i}: {buffDescs[i].text}");
+            }
             int idx = i;
-            buffButtons[i].onClick.RemoveAllListeners();
-            buffButtons[i].onClick.AddListener(() => SelectBuff(idx));
+            if (buffButtons[i] != null)
+            {
+                buffButtons[i].onClick.RemoveAllListeners();
+                buffButtons[i].onClick.AddListener(() => SelectBuff(buffs[idx]));
+            }
         }
-        statPointButton.gameObject.SetActive(true);
-        // statPointButton.GetComponentInChildren<Text>().text = $"Quy đổi thành {buffManager.statPointBuff.statPoints} điểm cộng";
+        int pointAmount = 0;
+        if (buffManager.statPointBuff != null)
+        {
+            if (buffManager.statPointBuff.GetType().GetMethod("GetPointAmount") != null)
+                pointAmount = (int)buffManager.statPointBuff.GetType().GetMethod("GetPointAmount").Invoke(buffManager.statPointBuff, null);
+            else if (buffManager.statPointBuff.GetType().GetField("statPoints") != null)
+                pointAmount = (int)buffManager.statPointBuff.GetType().GetField("statPoints").GetValue(buffManager.statPointBuff);
+        }
+        statPointButtonText.text = $"BỎ QUA (+{pointAmount} điểm cộng)";
         statPointButton.onClick.RemoveAllListeners();
         statPointButton.onClick.AddListener(SelectStatPoint);
     }
 
-    public void SelectBuff(int idx)
+    void SelectBuff(Buff buff)
     {
-        currentBuffs[idx].Apply(player);
+        buff.Apply(player);
         HidePanel();
     }
 
-    public void SelectStatPoint()
+    void SelectStatPoint()
     {
         buffManager.statPointBuff.Apply(null);
         HidePanel();
     }
 
-    private void HidePanel()
+    void HidePanel()
     {
         panel.SetActive(false);
     }

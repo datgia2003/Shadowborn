@@ -16,9 +16,13 @@ public class ItemManager : MonoBehaviour
 
     private PlayerResources playerResources;
 
+    private ItemUIManager itemUIManager;
+
     void Awake()
     {
-        playerResources = FindObjectOfType<PlayerResources>();
+    playerResources = FindObjectOfType<PlayerResources>();
+    itemUIManager = FindObjectOfType<ItemUIManager>();
+    itemUIManager.UpdateItemUI(coinCount, healthPotionCount, manaPotionCount);
     }
 
     void OnEnable()
@@ -48,15 +52,18 @@ public class ItemManager : MonoBehaviour
 
     public void AddHealthPotion(int amount = 1)
     {
-        healthPotionCount += amount;
+    healthPotionCount += amount;
+    itemUIManager.UpdateItemUI(coinCount, healthPotionCount, manaPotionCount);
     }
     public void AddManaPotion(int amount = 1)
     {
-        manaPotionCount += amount;
+    manaPotionCount += amount;
+    itemUIManager.UpdateItemUI(coinCount, healthPotionCount, manaPotionCount);
     }
     public void AddCoin(int amount = 1)
     {
-        coinCount += amount;
+    coinCount += amount;
+    itemUIManager.UpdateItemUI(coinCount, healthPotionCount, manaPotionCount);
     }
 
     public void UseHealthPotion()
@@ -65,6 +72,7 @@ public class ItemManager : MonoBehaviour
         {
             playerResources.AddHealth(healthRestoreAmount);
             healthPotionCount--;
+            itemUIManager.UpdateItemUI(coinCount, healthPotionCount, manaPotionCount);
             Debug.Log($"🧪 Used Health Potion (+{healthRestoreAmount} HP), remaining: {healthPotionCount}");
         }
     }
@@ -74,6 +82,7 @@ public class ItemManager : MonoBehaviour
         {
             playerResources.AddMana(manaRestoreAmount);
             manaPotionCount--;
+            itemUIManager.UpdateItemUI(coinCount, healthPotionCount, manaPotionCount);
             Debug.Log($"🔮 Used Mana Potion (+{manaRestoreAmount} MP), remaining: {manaPotionCount}");
         }
     }

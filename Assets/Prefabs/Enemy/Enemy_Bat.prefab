@@ -298,11 +298,11 @@ MonoBehaviour:
   healthPotionPrefab: {fileID: 7747395786966917667, guid: 666da093c32dd5b4080b95cbb9436bfa, type: 3}
   manaPotionPrefab: {fileID: 4696662561988549705, guid: a2ec62e1ff93f014db897c63042a1915, type: 3}
   coinPrefab: {fileID: 4517728076275760106, guid: a98aa289568c12a4c8059002bf271b2c, type: 3}
-  healthPotionDropRate: 1
-  manaPotionDropRate: 1
+  healthPotionDropRate: 0.2
+  manaPotionDropRate: 0.3
   coinDropRate: 1
   coinDropMin: 1
-  coinDropMax: 5
+  coinDropMax: 10
   moveSpeed: 5
   chaseRange: 8
   attackRange: 3.25

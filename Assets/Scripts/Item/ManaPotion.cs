@@ -13,6 +13,8 @@ public class ManaPotion : MonoBehaviour
         }
     }
 
+
+
     public void Collect()
     {
         var itemManager = FindObjectOfType<ItemManager>();

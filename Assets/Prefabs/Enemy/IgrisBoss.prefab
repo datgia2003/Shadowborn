@@ -195,6 +195,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e781b2529dc9174a9eb04176e977bd8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  healthPotionPrefab: {fileID: 7747395786966917667, guid: 666da093c32dd5b4080b95cbb9436bfa, type: 3}
+  manaPotionPrefab: {fileID: 4696662561988549705, guid: a2ec62e1ff93f014db897c63042a1915, type: 3}
+  coinPrefab: {fileID: 4517728076275760106, guid: a98aa289568c12a4c8059002bf271b2c, type: 3}
+  minDropCount: 1
+  maxDropCount: 3
+  dropRadius: 1.5
+  itemGravityScale: 2.5
   player: {fileID: 0}
   audioSource: {fileID: 3318534764710850788}
   crossSlashChargeSound: {fileID: 0}

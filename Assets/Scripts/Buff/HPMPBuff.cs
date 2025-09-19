@@ -8,10 +8,14 @@ public class HPMPBuff : Buff
     {
         if (player != null)
         {
-            player.maxHP = Mathf.RoundToInt(player.maxHP * (1f + percentIncrease));
-            player.maxMP = Mathf.RoundToInt(player.maxMP * (1f + percentIncrease));
-            player.currentHP = player.maxHP;
-            player.currentMP = player.maxMP;
+            var res = player.GetComponent<PlayerResources>();
+            if (res != null)
+            {
+                res.maxHealth = Mathf.RoundToInt(res.maxHealth * (1f + percentIncrease));
+                res.maxMana = Mathf.RoundToInt(res.maxMana * (1f + percentIncrease));
+                res.SetCurrentHealth(res.maxHealth);
+                res.AddMana(res.maxMana); // Đảm bảo currentMana = maxMana
+            }
         }
     }
 }

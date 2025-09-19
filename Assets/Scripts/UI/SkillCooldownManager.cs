@@ -36,6 +36,8 @@ public class SkillCooldownManager : MonoBehaviour
     // Internal cooldown tracking
     private Dictionary<string, float> skillCooldowns = new Dictionary<string, float>();
     private Dictionary<string, float> skillLastUsed = new Dictionary<string, float>();
+    // Cooldown multiplier cho từng skill
+    private Dictionary<string, float> skillCooldownMultipliers = new Dictionary<string, float>();
 
     // Event system for UI updates
     public static event Action<string, float, float> OnSkillCooldownChanged; // skillName, currentCooldown, maxCooldown
@@ -78,15 +80,19 @@ public class SkillCooldownManager : MonoBehaviour
         foreach (var skill in skills)
         {
             string skillName = skill.skillName;
+            float multiplier = 1f;
+            if (skillCooldownMultipliers.ContainsKey(skillName))
+                multiplier = skillCooldownMultipliers[skillName];
+            float effectiveCooldown = skill.cooldownDuration * multiplier;
             float timeSinceLastUse = Time.time - skillLastUsed[skillName];
-            float remainingCooldown = Mathf.Max(0f, skill.cooldownDuration - timeSinceLastUse);
+            float remainingCooldown = Mathf.Max(0f, effectiveCooldown - timeSinceLastUse);
 
             bool wasOnCooldown = skillCooldowns[skillName] > 0f;
             skillCooldowns[skillName] = remainingCooldown;
 
             // Fire events for UI updates
-            OnCooldownUpdated?.Invoke(skillName, remainingCooldown, skill.cooldownDuration);
-            OnSkillCooldownChanged?.Invoke(skillName, remainingCooldown, skill.cooldownDuration);
+            OnCooldownUpdated?.Invoke(skillName, remainingCooldown, effectiveCooldown);
+            OnSkillCooldownChanged?.Invoke(skillName, remainingCooldown, effectiveCooldown);
 
             // Fire ready event when cooldown finishes
             if (wasOnCooldown && remainingCooldown <= 0f)
@@ -173,6 +179,20 @@ public class SkillCooldownManager : MonoBehaviour
         {
             skillLastUsed[skillName] = Time.time;
             OnSkillUsed?.Invoke(skillName);
+        }
+    }
+
+    /// <summary>
+    /// Đặt hệ số cooldown cho từng skill (ví dụ: 0.5f là giảm 50%)
+    /// </summary>
+    public void SetSkillCooldownMultiplier(string skillName, float multiplier)
+    {
+        skillCooldownMultipliers[skillName] = multiplier;
+        // Áp dụng ngay cho skill đang có cooldown
+        var skillData = GetSkillData(skillName);
+        if (skillData != null)
+        {
+            skillData.cooldownDuration = skillData.cooldownDuration * multiplier;
         }
     }
 
