@@ -4,6 +4,8 @@ using TMPro;
 
 public class BuffSelectionUI : MonoBehaviour
 {
+    private Color normalColor = new Color(1f, 1f, 1f, 1f);
+    private Color hoverColor = new Color(1f, 0.85f, 0.3f, 1f); // vàng sáng
     public BuffManager buffManager;
     public PlayerController player;
 
@@ -57,6 +59,9 @@ public class BuffSelectionUI : MonoBehaviour
             {
                 buffButtons[i].onClick.RemoveAllListeners();
                 buffButtons[i].onClick.AddListener(() => SelectBuff(buffs[idx]));
+
+                // Add hover effect
+                AddBuffButtonHoverEvents(buffButtons[i], idx);
             }
         }
         int pointAmount = 0;
@@ -87,5 +92,39 @@ public class BuffSelectionUI : MonoBehaviour
     void HidePanel()
     {
         panel.SetActive(false);
+    }
+
+    private void AddBuffButtonHoverEvents(Button btn, int idx)
+    {
+        var trigger = btn.GetComponent<UnityEngine.EventSystems.EventTrigger>();
+        if (trigger == null)
+        {
+            trigger = btn.gameObject.AddComponent<UnityEngine.EventSystems.EventTrigger>();
+        }
+        trigger.triggers.Clear();
+
+        // Pointer Enter
+        var entryEnter = new UnityEngine.EventSystems.EventTrigger.Entry();
+        entryEnter.eventID = UnityEngine.EventSystems.EventTriggerType.PointerEnter;
+        entryEnter.callback.AddListener((data) => { SetBuffButtonHover(idx, true); });
+        trigger.triggers.Add(entryEnter);
+
+        // Pointer Exit
+        var entryExit = new UnityEngine.EventSystems.EventTrigger.Entry();
+        entryExit.eventID = UnityEngine.EventSystems.EventTriggerType.PointerExit;
+        entryExit.callback.AddListener((data) => { SetBuffButtonHover(idx, false); });
+        trigger.triggers.Add(entryExit);
+    }
+
+    private void SetBuffButtonHover(int idx, bool isHover)
+    {
+        if (buffButtonObjs[idx] != null)
+        {
+            buffButtonObjs[idx].transform.localScale = isHover ? Vector3.one * 1.08f : Vector3.one;
+        }
+        if (buffIcons[idx] != null)
+        {
+            buffIcons[idx].color = isHover ? hoverColor : normalColor;
+        }
     }
 }

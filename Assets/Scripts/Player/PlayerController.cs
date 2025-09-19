@@ -8,10 +8,6 @@ public class PlayerController : MonoBehaviour
     [Header("Buffs")]
     public bool canDoubleJump = false;
     public int dodgeCharges = 1;
-    public int maxHP = 100;
-    public int maxMP = 50;
-    public int currentHP = 100;
-    public int currentMP = 50;
     public int statPoints = 0;
 
     public void AddStatPoints(int points)

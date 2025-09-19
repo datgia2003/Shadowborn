@@ -225,12 +225,61 @@ public class PlayerResources : MonoBehaviour
             // Trigger death animation
             if (anim != null)
             {
-                anim.SetTrigger("Death");
+                anim.SetTrigger("Die");
             }
+
+            // Show DieUI with delay for death anim
+            StartCoroutine(ShowDieUIDelayed());
+
+            // Kết thúc màn chơi (có thể thêm logic khác nếu cần)
 
             OnPlayerDied?.Invoke();
         }
     }
+
+    private IEnumerator ShowDieUIDelayed()
+    {
+        yield return new WaitForSecondsRealtime(0.7f); // Delay for death animation
+        var dieUIManager = FindObjectOfType<DieUIManager>();
+        if (dieUIManager != null)
+        {
+            // Get coin count from ItemManager
+            int coinAmount = 0;
+            var itemManager = FindObjectOfType<ItemManager>();
+            if (itemManager != null)
+            {
+                coinAmount = itemManager.coinCount;
+            }
+
+            // Get rooms cleared from EndlessRoomUI
+            int stageCount = 0;
+            var endlessRoomUI = FindObjectOfType<EndlessRoomUI>();
+            if (endlessRoomUI != null)
+            {
+                var field = typeof(EndlessRoomUI).GetField("lastRoomsCleared", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (field != null)
+                {
+                    stageCount = (int)field.GetValue(endlessRoomUI);
+                }
+            }
+
+            dieUIManager.ShowDieUI(coinAmount, stageCount);
+        }
+    }
+    // Called by DieUIManager after TryAgain reloads scene
+    public void ResetPlayerState()
+    {
+        currentHealth = maxHealth;
+        currentMana = maxMana;
+        currentEnergy = maxEnergy;
+        isInvincible = false;
+        isInCombat = false;
+        OnHealthChanged?.Invoke(currentHealth, maxHealth);
+        OnManaChanged?.Invoke(currentMana, maxMana);
+        OnEnergyChanged?.Invoke(currentEnergy, maxEnergy);
+        Debug.Log("[PlayerResources] ResetPlayerState: HP, Mana, Energy reset");
+    }
+
 
     private IEnumerator InvincibilityFrames()
     {

@@ -19,7 +19,6 @@ public class PauseUIManager : MonoBehaviour
     public Image blurImage; // Image dùng để làm mờ background
 
     private bool isPaused = false;
-    // Đã bỏ PlayerInput, chỉ dùng InputActionReference
 
     void Awake()
     {
@@ -159,7 +158,16 @@ public class PauseUIManager : MonoBehaviour
     void ReturnToMainMenu()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene("MainMenu");
+
+        // Destroy PlayerStats singleton
+        if (PlayerStats.Instance != null)
+            Destroy(PlayerStats.Instance.gameObject);
+
+        // Destroy RoomManager singleton
+        if (RoomManager.Instance != null)
+            Destroy(RoomManager.Instance.gameObject);
+
+        SceneManager.LoadScene("MainMenuScene");
     }
 
     void QuitGame()

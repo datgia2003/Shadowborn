@@ -835,7 +835,7 @@ public class DodgeSkill : MonoBehaviour
         foreach (var enemy in nearbyEnemies)
         {
             if (enemy.gameObject != gameObject &&
-                (enemy.CompareTag("Enemy") || enemy.CompareTag("Boss")))
+                enemy.CompareTag("Enemy"))
             {
                 // Simple threat detection - if enemy is very close, consider it a perfect dodge
                 float distance = Vector2.Distance(transform.position, enemy.transform.position);
