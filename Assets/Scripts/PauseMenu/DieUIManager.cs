@@ -22,6 +22,19 @@ public class DieUIManager : MonoBehaviour
         if (clearedCountText != null) clearedCountText.text = stageCount.ToString();
         if (coinCountText != null) coinCountText.text = coinAmount.ToString();
 
+        // Lưu vàng và potion vào InventoryManager
+        if (InventoryManager.Instance != null)
+        {
+            InventoryManager.Instance.AddCoin(coinAmount);
+            var itemManager = FindObjectOfType<ItemManager>();
+            if (itemManager != null)
+            {
+                InventoryManager.Instance.SetHpPotion(itemManager.healthPotionCount);
+                InventoryManager.Instance.SetMpPotion(itemManager.manaPotionCount);
+            }
+            InventoryManager.Instance.SaveInventory();
+        }
+
         dieUI.SetActive(true);
         if (dieUICanvasGroup != null)
         {

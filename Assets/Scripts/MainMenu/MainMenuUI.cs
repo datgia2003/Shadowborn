@@ -3,14 +3,29 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class MainMenuUI : MonoBehaviour
 {
-    [Header("UI References")]
-    public Button playButton;
+    [Header("StartSelect Panel")]
+    public GameObject startSelectPanel;
+    public Button continueButton;
+    public Button newGameButton;
+    public Button exitButton;
+
+    [Header("MainMenu Buttons")]
+    public GameObject mainMenuPanel;
+    public Button startGameButton;
     public Button shopButton;
     public Button upgradeButton;
-    public Button settingsButton;
+    public Button settingButton;
+    public Button backButton;
+
+    [Header("Shop UI")]
+    public ShopUI shopUI;
+    public int startCoin = 8888;
+
+    [Header("UI References")]
     public TMP_Text titleText;
     public Image backgroundImage;
 
@@ -19,14 +34,113 @@ public class MainMenuUI : MonoBehaviour
     private Color normalTextColor = new Color(0.7f, 0.9f, 1f, 1f); // light blue
     private Color hoverTextColor = new Color(1f, 1f, 1f, 1f); // white
 
+    private Button[] mainMenuButtons;
+
     void Start()
     {
-        SetupButton(playButton, OnPlay);
+        if (mainMenuPanel != null) mainMenuPanel.SetActive(false);
+        if (startSelectPanel != null) startSelectPanel.SetActive(true);
+        if (exitButton != null) SetupButton(exitButton, OnExit);
+        if (backButton != null) SetupButton(backButton, OnBackToMenu);
+        if (continueButton != null) SetupButton(continueButton, OnContinue);
+        if (newGameButton != null) SetupButton(newGameButton, OnNewGame);
+        if (startGameButton != null) SetupButton(startGameButton, OnStartGame);
         SetupButton(shopButton, OnShop);
         SetupButton(upgradeButton, OnUpgrade);
-        SetupButton(settingsButton, OnSettings);
+        SetupButton(settingButton, OnSettings);
         SetupTitleEffect();
+        UpdateContinueButtonState();
     }
+    private void OnExit()
+    {
+        Application.Quit();
+    }
+
+    private void OnStartButton()
+    {
+        StartCoroutine(FadeOutMainMenuAndShowStartSelect());
+    }
+
+    IEnumerator FadeOutMainMenuAndShowStartSelect()
+    {
+        float duration = 0.35f;
+        float t = 0f;
+        Vector3 offset = new Vector3(400, 0, 0);
+        foreach (var btn in mainMenuButtons)
+        {
+            if (btn != null) btn.interactable = false;
+        }
+        while (t < duration)
+        {
+            t += Time.unscaledDeltaTime;
+            float alpha = 1f - t / duration;
+            float slide = Mathf.Lerp(0, offset.x, t / duration);
+            foreach (var btn in mainMenuButtons)
+            {
+                if (btn != null)
+                {
+                    var cg = btn.GetComponent<CanvasGroup>();
+                    if (cg == null) cg = btn.gameObject.AddComponent<CanvasGroup>();
+                    cg.alpha = alpha;
+                    btn.transform.localPosition = btn.transform.localPosition + new Vector3(slide, 0, 0);
+                }
+            }
+            yield return null;
+        }
+        foreach (var btn in mainMenuButtons)
+        {
+            if (btn != null) btn.gameObject.SetActive(false);
+        }
+        if (startSelectPanel != null)
+        {
+            startSelectPanel.SetActive(true);
+            yield return StartCoroutine(FadeInStartSelectPanel());
+        }
+        UpdateContinueButtonState();
+    }
+
+    IEnumerator FadeInStartSelectPanel()
+    {
+        float duration = 0.35f;
+        float t = 0f;
+        CanvasGroup cg = startSelectPanel.GetComponent<CanvasGroup>();
+        if (cg == null) cg = startSelectPanel.AddComponent<CanvasGroup>();
+        cg.alpha = 0f;
+        Vector3 startPos = startSelectPanel.transform.localPosition + new Vector3(400, 0, 0);
+        Vector3 endPos = startSelectPanel.transform.localPosition;
+        startSelectPanel.transform.localPosition = startPos;
+        while (t < duration)
+        {
+            t += Time.unscaledDeltaTime;
+            cg.alpha = Mathf.Lerp(0, 1, t / duration);
+            startSelectPanel.transform.localPosition = Vector3.Lerp(startPos, endPos, t / duration);
+            yield return null;
+        }
+        cg.alpha = 1f;
+        startSelectPanel.transform.localPosition = endPos;
+    }
+
+    private void UpdateContinueButtonState()
+    {
+        bool hasSave = InventoryManager.Instance.Coin != 0 || InventoryManager.Instance.HpPotion > 0 || InventoryManager.Instance.MpPotion > 0;
+        if (continueButton != null)
+        {
+            continueButton.interactable = hasSave;
+            var cg = continueButton.GetComponent<CanvasGroup>();
+            if (cg == null) cg = continueButton.gameObject.AddComponent<CanvasGroup>();
+            cg.alpha = hasSave ? 1f : 0.5f;
+        }
+    }
+
+    private void OnBackToMenu()
+    {
+        // Quay lại StartSelect, ẩn MainMenu
+        if (mainMenuPanel != null) mainMenuPanel.SetActive(false);
+        if (startSelectPanel != null) startSelectPanel.SetActive(true);
+        UpdateContinueButtonState();
+    }
+
+
 
     private void SetupButton(Button btn, UnityEngine.Events.UnityAction onClick)
     {
@@ -83,13 +197,33 @@ public class MainMenuUI : MonoBehaviour
         }
     }
 
-    private void OnPlay()
+    private void OnStartGame()
     {
-        SceneManager.LoadScene("SampleScene"); // Đổi tên scene nếu cần
+        SceneManager.LoadScene("SampleScene");
+    }
+
+    private void OnNewGame()
+    {
+        InventoryManager.Instance.ResetInventory();
+        // Ẩn StartSelect, hiện MainMenu
+        if (startSelectPanel != null) startSelectPanel.SetActive(false);
+        if (mainMenuPanel != null) mainMenuPanel.SetActive(true);
+        UpdateContinueButtonState();
+    }
+
+    private void OnContinue()
+    {
+        InventoryManager.Instance.LoadInventory();
+        // Ẩn StartSelect, hiện MainMenu
+        if (startSelectPanel != null) startSelectPanel.SetActive(false);
+        if (mainMenuPanel != null) mainMenuPanel.SetActive(true);
     }
     private void OnShop()
     {
-        // Mở shop UI hoặc chuyển scene
+        if (shopUI != null)
+        {
+            shopUI.ShowShop(startCoin);
+        }
     }
     private void OnUpgrade()
     {

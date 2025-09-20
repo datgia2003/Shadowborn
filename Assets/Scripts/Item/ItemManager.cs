@@ -20,9 +20,15 @@ public class ItemManager : MonoBehaviour
 
     void Awake()
     {
-    playerResources = FindObjectOfType<PlayerResources>();
-    itemUIManager = FindObjectOfType<ItemUIManager>();
-    itemUIManager.UpdateItemUI(coinCount, healthPotionCount, manaPotionCount);
+        playerResources = FindObjectOfType<PlayerResources>();
+        itemUIManager = FindObjectOfType<ItemUIManager>();
+        // Lấy dữ liệu từ InventoryManager nếu có
+        if (InventoryManager.Instance != null)
+        {
+            healthPotionCount = InventoryManager.Instance.HpPotion;
+            manaPotionCount = InventoryManager.Instance.MpPotion;
+        }
+        itemUIManager.UpdateItemUI(coinCount, healthPotionCount, manaPotionCount);
     }
 
     void OnEnable()
@@ -52,18 +58,18 @@ public class ItemManager : MonoBehaviour
 
     public void AddHealthPotion(int amount = 1)
     {
-    healthPotionCount += amount;
-    itemUIManager.UpdateItemUI(coinCount, healthPotionCount, manaPotionCount);
+        healthPotionCount += amount;
+        itemUIManager.UpdateItemUI(coinCount, healthPotionCount, manaPotionCount);
     }
     public void AddManaPotion(int amount = 1)
     {
-    manaPotionCount += amount;
-    itemUIManager.UpdateItemUI(coinCount, healthPotionCount, manaPotionCount);
+        manaPotionCount += amount;
+        itemUIManager.UpdateItemUI(coinCount, healthPotionCount, manaPotionCount);
     }
     public void AddCoin(int amount = 1)
     {
-    coinCount += amount;
-    itemUIManager.UpdateItemUI(coinCount, healthPotionCount, manaPotionCount);
+        coinCount += amount;
+        itemUIManager.UpdateItemUI(coinCount, healthPotionCount, manaPotionCount);
     }
 
     public void UseHealthPotion()
