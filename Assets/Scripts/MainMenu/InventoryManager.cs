@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class InventoryManager : MonoBehaviour
 {
+
     public static InventoryManager Instance { get; private set; }
 
     public int Coin { get; private set; }
@@ -56,9 +57,15 @@ public class InventoryManager : MonoBehaviour
         MpPotion = amount;
         SaveInventory();
     }
+
+    public void SetCoin(int amount)
+    {
+        Coin = amount;
+        SaveInventory();
+    }
     public void LoadInventory()
     {
-        Coin = PlayerPrefs.GetInt("Inventory_Coin", 0);
+        Coin = PlayerPrefs.GetInt("Inventory_Coin", 888);
         HpPotion = PlayerPrefs.GetInt("Inventory_HpPotion", 0);
         MpPotion = PlayerPrefs.GetInt("Inventory_MpPotion", 0);
     }

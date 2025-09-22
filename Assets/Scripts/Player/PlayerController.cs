@@ -5,6 +5,9 @@ using UnityEngine.InputSystem;
 // [RequireComponent(typeof(Animator))]
 public class PlayerController : MonoBehaviour
 {
+    // Vị trí bật nhảy lần cuối
+    public Vector3 lastJumpPosition;
+
     [Header("Buffs")]
     public bool canDoubleJump = false;
     public int dodgeCharges = 1;
@@ -191,6 +194,7 @@ public class PlayerController : MonoBehaviour
                 jumpBuffered = false;
                 rb.velocity = new Vector2(rb.velocity.x, jumpForce);
                 jumpCount = 1;
+                lastJumpPosition = transform.position; // Lưu vị trí bật nhảy
             }
             // Double jump
             else if (canDoubleJump && jumpCount < 2)
@@ -198,6 +202,7 @@ public class PlayerController : MonoBehaviour
                 jumpBuffered = false;
                 rb.velocity = new Vector2(rb.velocity.x, jumpForce);
                 jumpCount++;
+                lastJumpPosition = transform.position; // Lưu vị trí bật nhảy
                 // Optionally: play double jump animation/effect here
             }
         }

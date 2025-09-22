@@ -237,6 +237,30 @@ public class PlayerResources : MonoBehaviour
         }
     }
 
+    // Bất tử và nhấp nháy khi dính trap
+    private Coroutine invincibleCoroutine;
+    public void StartInvincible(float duration)
+    {
+        if (invincibleCoroutine != null)
+            StopCoroutine(invincibleCoroutine);
+        invincibleCoroutine = StartCoroutine(InvincibleBlinkCoroutine(duration));
+    }
+
+    private IEnumerator InvincibleBlinkCoroutine(float duration)
+    {
+        isInvincible = true;
+        float t = 0;
+        var sprite = GetComponent<SpriteRenderer>();
+        while (t < duration)
+        {
+            if (sprite != null) sprite.enabled = !sprite.enabled;
+            yield return new WaitForSeconds(0.15f);
+            t += 0.15f;
+        }
+        if (sprite != null) sprite.enabled = true;
+        isInvincible = false;
+    }
+
     private IEnumerator ShowDieUIDelayed()
     {
         yield return new WaitForSecondsRealtime(0.7f); // Delay for death animation

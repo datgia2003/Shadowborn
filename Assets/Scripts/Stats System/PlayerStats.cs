@@ -8,6 +8,14 @@ using System.Reflection;
 /// </summary>
 public class PlayerStats : MonoBehaviour
 {
+    // Bonus stats from upgrade nodes
+    private float bonusAttack = 0;
+    private float bonusCrit = 0;
+    private float bonusSkillDamage = 0;
+    private int bonusMaxHP = 0;
+    private float bonusMoveSpeed = 0;
+    private float bonusJumpForce = 0;
+
     [Header("🎯 Solo Leveling Stats System")]
     [Space(5)]
 
@@ -229,13 +237,44 @@ public class PlayerStats : MonoBehaviour
     {
         Debug.Log($"🔄 UpdatePlayerSystems called - VIT: {vitality}, INT: {intelligence}");
 
-        // Update PlayerResources health and mana with same logic
+        // --- Cộng thêm chỉ số từ các node đã mở ---
+        float bonusDefense = 0;
+        float bonusManaRegen = 0;
+        // Reset all bonus fields
+        bonusAttack = 0;
+        bonusCrit = 0;
+        bonusSkillDamage = 0;
+        bonusMaxHP = 0;
+        bonusMoveSpeed = 0;
+        bonusJumpForce = 0;
+
+        if (UpgradeManager.Instance != null)
+        {
+            foreach (var node in UpgradeManager.Instance.nodes)
+            {
+                if (!node.unlocked) continue;
+                switch (node.id)
+                {
+                    case "power1": bonusAttack += 0.05f; break; // +5% Attack Damage
+                    case "power2": bonusCrit += 5; break; // +5% Crit Chance
+                    case "power3": bonusSkillDamage += 0.1f; break; // +10% Skill Damage
+                    case "survive1": bonusMaxHP += 50; break; // +50 Max HP
+                    case "survive3": bonusDefense += 0.1f; break; // +10% Defense
+                    case "agility1": bonusMoveSpeed += 0.1f; break; // +10% Move Speed
+                    case "agility2": bonusJumpForce += 0.1f; break; // +10% Jump Force
+                    case "agility3": bonusManaRegen += 0.15f; break; // +15% Mana Regen
+                                                                     // Các node đặc biệt có thể xử lý riêng
+                }
+            }
+        }
+
+        // Update PlayerResources health and mana với bonus
         var playerResources = FindObjectOfType<PlayerResources>();
         if (playerResources != null)
         {
             Debug.Log($"📊 FOUND PlayerResources component!");
             Debug.Log($"📊 STATS: VIT={vitality}, STR={strength}, INT={intelligence}, AGI={agility}, CRIT={criticalChance}");
-            Debug.Log($"📊 CALCULATED: MaxHealth={100 + (vitality * (int)vitHealthMultiplier)}, MaxMana={MaxMana}");
+            Debug.Log($"📊 CALCULATED: MaxHealth={100 + (vitality * (int)vitHealthMultiplier) + bonusMaxHP}, MaxMana={MaxMana}");
 
             // Store current health and mana before updating max values  
             int currentHealth = playerResources.GetCurrentHealth();
@@ -246,7 +285,7 @@ public class PlayerStats : MonoBehaviour
             Debug.Log($"📊 PLAYERRESOURCES BEFORE: HP={currentHealth}/{oldMaxHealth}, MP={currentMana}/{oldMaxMana}");
 
             // Calculate what the max values SHOULD be based on current stats
-            int calculatedMaxHealth = 100 + (vitality * (int)vitHealthMultiplier);
+            int calculatedMaxHealth = 100 + (vitality * (int)vitHealthMultiplier) + bonusMaxHP;
             int calculatedMaxMana = MaxMana;
 
             // Calculate health and mana differences
@@ -304,20 +343,21 @@ public class PlayerStats : MonoBehaviour
             float oldWalkSpeed = playerController.walkSpeed;
             float oldRunSpeed = playerController.runSpeed;
 
-            playerController.walkSpeed = MovementSpeed;
-            playerController.runSpeed = MovementSpeed * 2.5f; // 7*2.5=17.5f closer to default 18f
+            // Cộng thêm bonusMoveSpeed từ node
+            playerController.walkSpeed = MovementSpeed * (1f + bonusMoveSpeed);
+            playerController.runSpeed = playerController.walkSpeed * 2.5f;
 
             Debug.Log($"🏃 PlayerController updated:");
             Debug.Log($"   Walk Speed: {oldWalkSpeed:F1} → {playerController.walkSpeed:F1}");
             Debug.Log($"   Run Speed: {oldRunSpeed:F1} → {playerController.runSpeed:F1}");
 
-            // Also try to update jumpForce if it exists
+            // Cộng thêm bonusJumpForce từ node
             var controllerType = typeof(PlayerController);
             var jumpForceField = controllerType.GetField("jumpForce", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             if (jumpForceField != null)
             {
                 float oldJumpForce = (float)jumpForceField.GetValue(playerController);
-                float newJumpForce = 20f + (agility * 0.2f); // Base 20f to match default
+                float newJumpForce = (20f + (agility * 0.2f)) * (1f + bonusJumpForce); // Base 20f + AGI + node
                 jumpForceField.SetValue(playerController, newJumpForce);
                 Debug.Log($"   Jump Force: {oldJumpForce:F1} → {newJumpForce:F1}");
             }
@@ -344,6 +384,33 @@ public class PlayerStats : MonoBehaviour
             // Access public field directly (no reflection needed)
             float oldAttackSpeed = playerCombat.attackSpeed;
             playerCombat.attackSpeed = AttackSpeed;
+
+            // Cộng thêm bonusAttack, bonusSkillDamage, bonusCrit vào các trường tương ứng nếu có
+            var combatType = playerCombat.GetType();
+            var attackField = combatType.GetField("attackDamage", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            if (attackField != null)
+            {
+                float oldAttack = Convert.ToSingle(attackField.GetValue(playerCombat));
+                float newAttack = oldAttack * (1f + bonusAttack);
+                attackField.SetValue(playerCombat, newAttack);
+                Debug.Log($"   Attack Damage: {oldAttack:F1} → {newAttack:F1}");
+            }
+            var skillField = combatType.GetField("skillDamage", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            if (skillField != null)
+            {
+                float oldSkill = Convert.ToSingle(skillField.GetValue(playerCombat));
+                float newSkill = oldSkill * (1f + bonusSkillDamage);
+                skillField.SetValue(playerCombat, newSkill);
+                Debug.Log($"   Skill Damage: {oldSkill:F1} → {newSkill:F1}");
+            }
+            var critField = combatType.GetField("critChance", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            if (critField != null)
+            {
+                float oldCrit = Convert.ToSingle(critField.GetValue(playerCombat));
+                float newCrit = oldCrit + bonusCrit;
+                critField.SetValue(playerCombat, newCrit);
+                Debug.Log($"   Crit Chance: {oldCrit:F1} → {newCrit:F1}");
+            }
 
             Debug.Log($"⚔️ PlayerCombat updated:");
             Debug.Log($"   Attack Speed: {oldAttackSpeed:F2} → {playerCombat.attackSpeed:F2}");

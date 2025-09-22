@@ -21,6 +21,9 @@ public class MainMenuUI : MonoBehaviour
     public Button settingButton;
     public Button backButton;
 
+    [Header("Upgrade UI")]
+    public UpgradeUI upgradeUI;
+
     [Header("Shop UI")]
     public ShopUI shopUI;
     public int startCoin = 8888;
@@ -205,6 +208,8 @@ public class MainMenuUI : MonoBehaviour
     private void OnNewGame()
     {
         InventoryManager.Instance.ResetInventory();
+        if (UpgradeManager.Instance != null)
+            UpgradeManager.Instance.ResetUpgrades();
         // Ẩn StartSelect, hiện MainMenu
         if (startSelectPanel != null) startSelectPanel.SetActive(false);
         if (mainMenuPanel != null) mainMenuPanel.SetActive(true);
@@ -227,7 +232,11 @@ public class MainMenuUI : MonoBehaviour
     }
     private void OnUpgrade()
     {
-        // Mở upgrade UI hoặc chuyển scene
+        if (upgradeUI != null && upgradeUI.upgradePanel != null)
+        {
+            upgradeUI.upgradePanel.SetActive(true);
+            upgradeUI.RefreshUI();
+        }
     }
     private void OnSettings()
     {
