@@ -24,6 +24,9 @@ public class SummonSkill : MonoBehaviour
     private bool hasSpawnedFrame3 = false;
     private bool hasPlayedActivation = false;
 
+    // Khóa skill khi intro/cutscene
+    public bool isIntroLock = false;
+
     void Start()
     {
         animator = GetComponent<Animator>();
@@ -76,6 +79,7 @@ public class SummonSkill : MonoBehaviour
     /// </summary>
     public void PlaySkill()
     {
+        if (isIntroLock) return;
         if (!isCasting)
         {
             StartCasting();

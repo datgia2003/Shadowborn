@@ -173,6 +173,8 @@ public class DodgeSkill : MonoBehaviour
     private Vector2 originalColliderSize;
     private float dodgeFlipDirection = 1f; // Track the flip direction set during dodge
 
+    public bool isIntroLock = false;
+
     // Skill constants
     private const string SKILL_NAME = "Dodge";
 
@@ -245,6 +247,7 @@ public class DodgeSkill : MonoBehaviour
     // This method will be called by PlayerInput component when Dodge action is triggered
     void OnDodge(InputValue value)
     {
+        if (isIntroLock) return;
         if (value.isPressed && CanDodge())
         {
             PerformDodge();

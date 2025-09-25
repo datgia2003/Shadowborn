@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections;
 
 public class BuffSelectionUI : MonoBehaviour
 {
@@ -22,11 +23,17 @@ public class BuffSelectionUI : MonoBehaviour
     void Start()
     {
         panel.SetActive(false);
-        ShowBuffSelection();
+        // Không tự động gọi ShowBuffSelection ở Start nữa
     }
 
     public void ShowBuffSelection()
     {
+        Debug.Log("[BuffSelectionUI] ShowBuffSelection called");
+        if (panel == null)
+        {
+            Debug.LogError("[BuffSelectionUI] panel is not assigned!");
+            return;
+        }
         panel.SetActive(true);
         var buffs = buffManager.GetRandomBuffs(3);
         Debug.Log($"[BuffSelectionUI] ShowBuffSelection: buffs count = {buffs.Length}");
@@ -59,11 +66,14 @@ public class BuffSelectionUI : MonoBehaviour
             {
                 buffButtons[i].onClick.RemoveAllListeners();
                 buffButtons[i].onClick.AddListener(() => SelectBuff(buffs[idx]));
-
                 // Add hover effect
                 AddBuffButtonHoverEvents(buffButtons[i], idx);
             }
         }
+
+        // Hiệu ứng lật lần lượt từ trái sang phải
+        StartCoroutine(FlipBuffsCoroutine(buffs));
+
         int pointAmount = 0;
         if (buffManager.statPointBuff != null)
         {
@@ -77,9 +87,81 @@ public class BuffSelectionUI : MonoBehaviour
         statPointButton.onClick.AddListener(SelectStatPoint);
     }
 
+    // Hiệu ứng lật và xử lý mờ/disable cho buff đã chọn
+    private IEnumerator FlipBuffsCoroutine(Buff[] buffs)
+    {
+        float fadeDuration = 0.35f;
+        float delayBetween = 0.13f;
+        for (int i = 0; i < buffs.Length; i++)
+        {
+            var obj = buffButtonObjs[i];
+            if (obj != null)
+            {
+                // Bắt đầu ở vị trí thấp hơn và alpha = 0
+                Vector3 startPos = obj.transform.localPosition;
+                Vector3 fromPos = startPos + new Vector3(0f, -60f, 0f);
+                obj.transform.localPosition = fromPos;
+                CanvasGroup cg = obj.GetComponent<CanvasGroup>();
+                if (cg == null) cg = obj.AddComponent<CanvasGroup>();
+                cg.alpha = 0f;
+
+                // Nếu buff đã chọn rồi thì mờ và disable
+                bool isChosen = buffs[i] != null && buffManager.IsBuffChosen(buffs[i]);
+                if (isChosen)
+                {
+                    if (buffIcons[i] != null)
+                    {
+                        var c = buffIcons[i].color;
+                        c.a = 0.4f;
+                        buffIcons[i].color = c;
+                    }
+                    if (buffButtons[i] != null)
+                    {
+                        buffButtons[i].interactable = false;
+                    }
+                }
+                else
+                {
+                    if (buffIcons[i] != null)
+                    {
+                        var c = buffIcons[i].color;
+                        c.a = 1f;
+                        buffIcons[i].color = c;
+                    }
+                    if (buffButtons[i] != null)
+                    {
+                        buffButtons[i].interactable = true;
+                    }
+                }
+
+                // Hiệu ứng fade-in từ dưới lên
+                float t = 0f;
+                while (t < fadeDuration)
+                {
+                    float progress = t / fadeDuration;
+                    obj.transform.localPosition = Vector3.Lerp(fromPos, startPos, progress);
+                    cg.alpha = Mathf.Lerp(0f, 1f, progress);
+                    t += Time.unscaledDeltaTime;
+                    yield return null;
+                }
+                obj.transform.localPosition = startPos;
+                cg.alpha = 1f;
+                yield return new WaitForSecondsRealtime(delayBetween);
+            }
+        }
+    }
+
     void SelectBuff(Buff buff)
     {
-        buff.Apply(player);
+        if (buff != null)
+        {
+            buff.Apply(player);
+            // Thêm buff vào danh sách đã chọn
+            if (buffManager != null && !buffManager.chosenBuffs.Contains(buff))
+            {
+                buffManager.chosenBuffs.Add(buff);
+            }
+        }
         HidePanel();
     }
 

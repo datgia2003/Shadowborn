@@ -211,6 +211,8 @@ public class TruthMultilateUltimate : MonoBehaviour
     // Component references
     private MonoBehaviour playerController;
 
+    public bool isIntroLock = false;
+
     void Awake()
     {
         if (animator == null) animator = GetComponent<Animator>();
@@ -282,6 +284,7 @@ public class TruthMultilateUltimate : MonoBehaviour
     /// </summary>
     public void PlaySkill()
     {
+        if (isIntroLock) return;
         if (!isUltimateActive)
         {
             // Check requirements (excluding mana - already checked by UI system)

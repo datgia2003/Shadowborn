@@ -20,6 +20,11 @@ public class ExitTrigger : MonoBehaviour
     [Tooltip("Có thể reset trigger sau khi đã kích hoạt không")]
     [SerializeField] private bool canReset = false;
 
+
+    [Header("🌀 Gate Settings")]
+    [Tooltip("GameObject Gate đã có sẵn trong scene, sẽ enable khi exit trigger xuất hiện")]
+    [SerializeField] public GameObject gateObject;
+
     // Events (có thể dùng cho effects, sounds, etc.)
     public static System.Action OnPlayerEnterExit;
     public static System.Action OnRoomSpawnRequested;
@@ -36,6 +41,16 @@ public class ExitTrigger : MonoBehaviour
         if (RoomManager.Instance == null)
         {
             Debug.LogError("❌ ExitTrigger: Không tìm thấy RoomManager! Hãy đảm bảo có RoomManager trong scene.");
+        }
+
+        // Đảm bảo Gate luôn ẩn khi bắt đầu scene
+        if (gateObject != null && gateObject.activeSelf)
+        {
+            gateObject.SetActive(false);
+            if (enableDebugLog)
+            {
+                Debug.Log($"🌀 ExitTrigger: Gate set inactive at start");
+            }
         }
     }
 
@@ -105,6 +120,8 @@ public class ExitTrigger : MonoBehaviour
 
         // Yêu cầu RoomManager spawn room tiếp theo
         RequestNextRoom();
+
+        // ... Gate sẽ enable từ SimpleWaveManager khi clear wave
     }
 
     /// <summary>
@@ -133,6 +150,23 @@ public class ExitTrigger : MonoBehaviour
         if (enableDebugLog)
         {
             Debug.Log($"✅ ExitTrigger: Next room request sent successfully!");
+        }
+    }
+
+    /// <summary>
+    /// Enable Gate khi exit trigger xuất hiện
+    /// </summary>
+    private void EnableGate()
+    {
+        if (gateObject == null)
+        {
+            Debug.LogWarning($"⚠️ ExitTrigger: gateObject chưa được gán!");
+            return;
+        }
+        gateObject.SetActive(true);
+        if (enableDebugLog)
+        {
+            Debug.Log($"🌀 ExitTrigger: Gate enabled at {gateObject.transform.position}");
         }
     }
 

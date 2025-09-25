@@ -5,6 +5,24 @@ using UnityEngine.InputSystem;
 // [RequireComponent(typeof(Animator))]
 public class PlayerController : MonoBehaviour
 {
+    // Khóa toàn bộ input, skill, attack khi intro/cutscene
+    public bool isIntroLock = false;
+
+    /// <summary>
+    /// Cho phép script khác set hướng di chuyển tạm thời (ví dụ: intro, cutscene)
+    /// </summary>
+    public void SetMoveInput(Vector2 dir)
+    {
+        moveInput = dir;
+    }
+
+    /// <summary>
+    /// Bật/tắt input điều khiển player (dùng cho cutscene, intro, v.v.)
+    /// </summary>
+    public void SetInputEnabled(bool enabled)
+    {
+        canMove = enabled;
+    }
     // Vị trí bật nhảy lần cuối
     public Vector3 lastJumpPosition;
 
@@ -29,6 +47,10 @@ public class PlayerController : MonoBehaviour
     public Transform groundCheck;
     public float groundCheckRadius = 0.15f;
     public LayerMask groundMask;
+
+    [Header("Footstep Sound")]
+    public AudioClip[] footstepClips;
+    public AudioSource footstepSource;
 
     [HideInInspector]
     public bool canMove = true;    // Cho phép di chuyển và nhảy ngoài combat
@@ -77,10 +99,23 @@ public class PlayerController : MonoBehaviour
     [Header("Collider Data Per Animation")]
     public AnimationColliderData[] animationColliders;
 
+    private int footstepFrameCounter = 0;
+    private int footstepFrameThreshold = 8;
+    private bool wasMovingLastFrame = false;
+
+    private float footstepCooldown = 0f;
+    private float walkFootstepInterval = 0.5f;
+    private float runFootstepInterval = 0.3f;
+
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         // anim = GetComponent<Animator>();
+        if (footstepSource == null)
+        {
+            footstepSource = gameObject.AddComponent<AudioSource>();
+            footstepSource.playOnAwake = false;
+        }
     }
 
     void Update()
@@ -88,21 +123,19 @@ public class PlayerController : MonoBehaviour
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundMask);
         // Reset jump count when grounded
         if (isGrounded) jumpCount = 0;
-        // Read run input by checking if shift is held
-        if (canMove)
+        // Chỉ nhận input khi không bị intro lock
+        if (canMove && !isIntroLock)
         {
             bool holdShift = Keyboard.current != null && Keyboard.current.leftShiftKey.isPressed;
             bool holdRunButton = Gamepad.current != null && Gamepad.current.buttonSouth.isPressed;
             isRunning = holdShift || holdRunButton;
         }
-
         HandleJumpBuffer();
-
         // Only update animator params if not disabled by special moves (like dodge)
         if (!disableAnimatorUpdates)
-        {
             UpdateAnimatorParams();
-        }
+        // Footstep sound logic
+        HandleFootstepSound();
     }
 
     void FixedUpdate()
@@ -115,12 +148,13 @@ public class PlayerController : MonoBehaviour
     // ---- Input callbacks (Send Messages) ----
     void OnMove(InputValue v)
     {
-        moveInput = v.Get<Vector2>();
+        if (!isIntroLock)
+            moveInput = v.Get<Vector2>();
     }
 
     void OnJump(InputValue v)
     {
-        if (!canMove || !v.isPressed) return;
+        if (!canMove || !v.isPressed || isIntroLock) return;
         jumpBuffered = true;
         jumpBufferTimer = jumpBufferDuration;
     }
@@ -180,7 +214,15 @@ public class PlayerController : MonoBehaviour
     {
         float dir = moveInput.x;
         float speed = isRunning ? runSpeed : walkSpeed;
-        rb.velocity = new Vector2(dir * speed, rb.velocity.y);
+        // Nếu đang intro lock, chỉ di chuyển bằng moveInput do SetMoveInput, không lấy input từ người chơi
+        if (isIntroLock)
+        {
+            rb.velocity = new Vector2(dir * walkSpeed, rb.velocity.y);
+        }
+        else
+        {
+            rb.velocity = new Vector2(dir * speed, rb.velocity.y);
+        }
 
         // Only handle sprite flipping if not during dodge (DodgeSkill handles its own flipping)
         if (Mathf.Abs(dir) > 0.01f && !disableAnimatorUpdates)
@@ -258,5 +300,35 @@ public class PlayerController : MonoBehaviour
 
     // Ví dụ: Animation Event gọi SetCharacterCollider(animationIndex, frameIndex)
     // Trong Inspector, đặt tên animation rõ ràng để dễ quản lý
+
+    private void HandleFootstepSound()
+    {
+        // Chỉ phát tiếng chân khi đang di chuyển trên mặt đất (kể cả khi intro/cutscene)
+        bool isMoving = canMove && isGrounded && Mathf.Abs(moveInput.x) > 0.1f;
+        float interval = isRunning ? runFootstepInterval : walkFootstepInterval;
+        if (isMoving)
+        {
+            footstepCooldown -= Time.deltaTime;
+            if (footstepCooldown <= 0f)
+            {
+                PlayFootstep();
+                footstepCooldown = interval;
+            }
+        }
+        else
+        {
+            footstepCooldown = 0f;
+        }
+    }
+
+    private void PlayFootstep()
+    {
+        if (footstepClips != null && footstepClips.Length > 0 && footstepSource != null)
+        {
+            int idx = Random.Range(0, footstepClips.Length);
+            footstepSource.clip = footstepClips[idx];
+            footstepSource.Play();
+        }
+    }
 
 }

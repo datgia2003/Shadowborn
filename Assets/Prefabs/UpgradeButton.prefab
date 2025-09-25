@@ -227,6 +227,7 @@ MonoBehaviour:
   button: {fileID: 3521132642789191053}
   labelText: {fileID: 4409337751393468963}
   iconImage: {fileID: 7955125528023970081}
+  glowImage: {fileID: 0}
 --- !u!1 &7849538087076862444
 GameObject:
   m_ObjectHideFlags: 0
@@ -294,8 +295,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: +5% Attack Damage
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 31742b793ee834e458297bd894e5709a, type: 2}
+  m_sharedMaterial: {fileID: -3980803367762168007, guid: 31742b793ee834e458297bd894e5709a, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []

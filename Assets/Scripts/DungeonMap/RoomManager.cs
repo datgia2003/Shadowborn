@@ -50,6 +50,8 @@ public class RoomManager : MonoBehaviour
     // Singleton pattern để dễ truy cập từ ExitTrigger
     public static RoomManager Instance { get; private set; }
 
+    private BuffSelectionUI buffSelectionUI;
+
     private void Awake()
     {
         // Đảm bảo chỉ có 1 RoomManager trong scene
@@ -88,6 +90,9 @@ public class RoomManager : MonoBehaviour
 
         // Spawn room đầu tiên tại vị trí start
         SpawnFirstRoom();
+
+        buffSelectionUI = FindObjectOfType<BuffSelectionUI>();
+        buffSelectionUI.ShowBuffSelection(); // Show buff selection at start
     }
 
     /// <summary>
@@ -120,6 +125,19 @@ public class RoomManager : MonoBehaviour
         activeRooms.Add(firstRoom);
         currentRoom = firstRoom;
         totalRoomsSpawned++;
+
+        // Đặt lại vị trí player về Entry của room đầu tiên
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        Transform entryPoint = FindEntryPoint(firstRoom);
+        if (player != null && entryPoint != null)
+        {
+            player.transform.position = entryPoint.position;
+            Debug.Log($"[RoomManager] Player moved to Entry (first room): {entryPoint.position}");
+        }
+        else
+        {
+            Debug.LogWarning("[RoomManager] Không tìm thấy Entry hoặc Player khi spawn room đầu tiên!");
+        }
 
         // Ghi log spawn đầu tiên
         Debug.Log($"✅ First room spawned at {startPosition}.");
@@ -191,6 +209,15 @@ public class RoomManager : MonoBehaviour
 
         // Quản lý số lượng room active (xóa room cũ nếu cần)
         ManageActiveRooms();
+
+        // Đặt lại vị trí player về Entry của room mới
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        Transform entryPoint = FindEntryPoint(newRoom);
+        if (player != null && entryPoint != null)
+        {
+            player.transform.position = entryPoint.position;
+            Debug.Log($"Player moved to Entry: {entryPoint.position}");
+        }
 
         Debug.Log($"✅ New room spawned! Total rooms: {totalRoomsSpawned}, Active rooms: {activeRooms.Count}, Difficulty: {difficultyLevel}");
 

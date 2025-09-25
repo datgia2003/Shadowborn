@@ -6,6 +6,16 @@ public class BuffManager : MonoBehaviour
     public List<Buff> allBuffs;
     public Buff statPointBuff;
 
+    // Danh sách buff đã chọn
+    public List<Buff> chosenBuffs = new List<Buff>();
+    /// <summary>
+    /// Kiểm tra buff đã được chọn chưa
+    /// </summary>
+    public bool IsBuffChosen(Buff buff)
+    {
+        return buff != null && chosenBuffs.Contains(buff);
+    }
+
     public Buff[] GetRandomBuffs(int count)
     {
         List<Buff> pool = new List<Buff>(allBuffs);

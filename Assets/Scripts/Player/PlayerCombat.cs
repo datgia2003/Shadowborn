@@ -6,6 +6,9 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(Animator))]
 public class PlayerCombat : MonoBehaviour
 {
+    // Khóa toàn bộ attack/skill khi intro/cutscene
+    public bool isIntroLock = false;
+
     // ===== FX/Sound Struct & Arrays =====
     [System.Serializable]
     public class AttackFX
@@ -101,6 +104,7 @@ public class PlayerCombat : MonoBehaviour
 
     void OnLight(InputValue v)
     {
+        if (isIntroLock) return;
         if (!v.isPressed) return;
         // Chỉ cho phép light attack khi đang trên mặt đất
         if (!IsGrounded()) return;
@@ -109,6 +113,7 @@ public class PlayerCombat : MonoBehaviour
 
     void OnHeavy(InputValue v)
     {
+        if (isIntroLock) return;
         if (!v.isPressed) return;
         // Đòn heavy 5 (maxHeavyCombo) chỉ cho phép khi đang ở trên không
         // Các đòn heavy khác chỉ cho phép khi đang trên mặt đất
@@ -124,7 +129,9 @@ public class PlayerCombat : MonoBehaviour
     }
 
     void BufferAttack(AttackType type)
+
     {
+        if (isIntroLock) return;
         if (comboLocked) return;
         if (Time.time < nextComboAllowedTime) return;
 
@@ -183,6 +190,8 @@ public class PlayerCombat : MonoBehaviour
 
     void TryAttack(AttackType type)
     {
+        if (isIntroLock) return;
+
         int maxCombo = (type == AttackType.Light) ? maxLightCombo : maxHeavyCombo;
         if (comboCount >= maxCombo) return;
 
@@ -303,6 +312,7 @@ public class PlayerCombat : MonoBehaviour
 
     public void AttackEnd()
     {
+        if (isIntroLock) return;
         controller.canMove = true;
         canChain = false;
         DisableAllHits();
@@ -340,6 +350,7 @@ public class PlayerCombat : MonoBehaviour
     // Gọi hàm này từ Animation Event để xử lý hiệu ứng phụ (hit stop, FX, SFX...)
     public void AttackHitboxCheck()
     {
+        if (isIntroLock) return;
         // Không cần gọi PlayAttackFX/Sfx nữa, đã xử lý trong Hitbox.cs
         // Nếu muốn: Camera shake, v.v.
         // Tạo hit stop (pause game ngắn)
@@ -383,6 +394,8 @@ public class PlayerCombat : MonoBehaviour
     // Gọi từ Animation Event: FX/sound bụi cho từng light step
     public void PlayLightDustFX(int idx)
     {
+        if (isIntroLock) return;
+        if (isIntroLock) return;
         if (lightDustFXs != null && idx >= 0 && idx < lightDustFXs.Length && lightDustFXs[idx].fxPrefab != null)
         {
             var fx = lightDustFXs[idx];
@@ -406,6 +419,7 @@ public class PlayerCombat : MonoBehaviour
     // Gọi từ Animation Event: FX/sound đấm cho từng heavy step
     public void PlayHeavyPunchFX(int idx)
     {
+        if (isIntroLock) return;
         if (heavyPunchFXs != null && idx >= 0 && idx < heavyPunchFXs.Length && heavyPunchFXs[idx].fxPrefab != null)
         {
             var fx = heavyPunchFXs[idx];
@@ -429,6 +443,7 @@ public class PlayerCombat : MonoBehaviour
     // Gọi từ Animation Event: FX/sound bụi cho từng heavy step
     public void PlayHeavyDustFX(int idx)
     {
+        if (isIntroLock) return;
         if (heavyDustFXs != null && idx >= 0 && idx < heavyDustFXs.Length && heavyDustFXs[idx].fxPrefab != null)
         {
             var fx = heavyDustFXs[idx];

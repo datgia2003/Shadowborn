@@ -79,6 +79,19 @@ public class SimpleWaveManager : MonoBehaviour
             {
                 exitCollider.enabled = true;
                 exitTrigger.ResetTrigger(); // Reset to allow triggering
+                // Enable Gate tại đây
+                if (exitTrigger.gateObject != null)
+                {
+                    exitTrigger.gateObject.SetActive(true);
+                    if (showDebugInfo)
+                    {
+                        Debug.Log($"🌀 Gate enabled at {exitTrigger.gateObject.transform.position}");
+                    }
+                }
+                else if (showDebugInfo)
+                {
+                    Debug.LogWarning("⚠️ ExitTrigger: gateObject chưa được gán!");
+                }
                 if (showDebugInfo)
                 {
                     Debug.Log("✅ Exit unblocked - player can now proceed!");
