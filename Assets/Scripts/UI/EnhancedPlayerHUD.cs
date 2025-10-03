@@ -524,6 +524,7 @@ public class EnhancedPlayerHUD : MonoBehaviour
 
     private void OnLevelUp(int newLevel)
     {
+        if (this == null || !gameObject.activeInHierarchy) return;
         // Level up particle effect
         if (levelUpParticles != null && enableParticleEffects)
         {
@@ -551,6 +552,7 @@ public class EnhancedPlayerHUD : MonoBehaviour
         // For multi-level ups, just trigger the same effects as single level up
         // but update to the final level
 
+        if (this == null || !gameObject.activeInHierarchy) return;
         // Level up particle effect
         if (levelUpParticles != null && enableParticleEffects)
         {

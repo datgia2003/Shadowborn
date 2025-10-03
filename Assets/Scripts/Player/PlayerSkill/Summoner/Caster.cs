@@ -849,7 +849,8 @@ public class Caster : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("EnemyAttack") || other.CompareTag("Enemy") || other.CompareTag("PlayerAttack"))
+        // if (other.CompareTag("EnemyAttack") || other.CompareTag("Enemy") || other.CompareTag("PlayerAttack"))
+        if (other.CompareTag("Enemy"))
         {
             OnHit();
         }

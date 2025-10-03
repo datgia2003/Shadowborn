@@ -6,6 +6,351 @@ using UnityEngine.UI;
 [RequireComponent(typeof(Animator))]
 public class Igris : MonoBehaviour, IDamageable
 {
+    // ...existing code...
+
+    // Overload giống Damageable
+    public void TakeHit(float dmg, Vector2 hitDirection, Transform attacker = null, float knockbackForce = 8f, float hitPullStrength = 0f)
+    {
+        if (!IsAlive) return;
+        currentHP -= Mathf.RoundToInt(dmg);
+        currentHP = Mathf.Max(currentHP, 0); // Clamp HP về 0
+
+        if (currentHP > 0)
+        {
+            // Hitstop cực ngắn - chỉ 1-2 frames
+            float hitstopDuration = 0.03f; // Match với PlayerCombat
+            StartCoroutine(WorldHitStopCoroutine(hitstopDuration));
+
+            // Hit pull mạnh hơn - DISABLE cho boss để tránh player nhảy lung tung
+            // Chỉ giữ lại camera shake và visual effects
+            /*
+            if (attacker != null)
+            {
+                var playerRb = attacker.GetComponent<Rigidbody2D>();
+                if (playerRb != null)
+                {
+                    // Tính hướng CHỈ THEO CHIỀU NGANG từ player đến boss
+                    float horizontalDirection = Mathf.Sign(transform.position.x - attacker.position.x);
+                    Vector2 pullDirection = new Vector2(horizontalDirection, 0f); // CHỈ CHIỀU NGANG
+                    
+                    Debug.Log($"[Hit Pull] Boss pos: {transform.position}, Player pos: {attacker.position}");
+                    Debug.Log($"[Hit Pull] Horizontal direction: {horizontalDirection}, Pull direction: {pullDirection}");
+                    
+                    float strongPull = hitPullStrength > 0f ? hitPullStrength * 2f : 8f; // Giảm pull strength
+                    Debug.Log($"[Hit Pull] Pull strength: {strongPull}");
+                    StartCoroutine(StrongHitPullCoroutine(playerRb, pullDirection * strongPull, 0.15f));
+                }
+            }
+            */
+
+            // Knockback với weight - boss nặng nên khó đẩy
+            if (rb != null && hitDirection != Vector2.zero)
+            {
+                float bossWeight = 0.6f; // Boss nặng, giảm knockback
+                float finalKnockback = knockbackForce * bossWeight;
+                Vector2 knockback = new Vector2(hitDirection.x * finalKnockback,
+                    Mathf.Abs(hitDirection.y) > 0.1f ? hitDirection.y * finalKnockback * 0.5f : rb.velocity.y);
+                rb.velocity = knockback;
+
+                // Boss recoil animation
+                StartCoroutine(BossRecoilCoroutine(hitDirection));
+            }
+
+            // Camera shake + zoom punch như Hades
+            ShakeCamera(0.6f, 0.3f);
+            StartCoroutine(CameraZoomPunchCoroutine());
+
+            // Boss hitstun với visual feedback
+            StartCoroutine(BossHitStunCoroutine(0.3f));
+
+            // Screen flash effect như Dead Cells
+            StartCoroutine(ScreenFlashCoroutine());
+        }
+        else
+        {
+            currentHP = 0;
+            Die();
+        }
+    }
+
+    private IEnumerator HitStopAnimatorCoroutine(Animator anim, float duration)
+    {
+        float prevSpeed = anim.speed;
+        anim.speed = 0f;
+        yield return new WaitForSecondsRealtime(duration);
+        anim.speed = prevSpeed;
+    }
+
+    // World hitstop - freeze toàn bộ thế giới như Hollow Knight
+    private IEnumerator WorldHitStopCoroutine(float duration)
+    {
+        // Freeze time scale cho effect "thế giới dừng lại"
+        float originalTimeScale = Time.timeScale;
+        Time.timeScale = 0f;
+
+        // Wait with unscaled time
+        yield return new WaitForSecondsRealtime(duration);
+
+        // Restore time
+        Time.timeScale = originalTimeScale;
+    }
+
+    // Strong hit pull như Dead Cells - player bị "hút" vào boss (CHỈ THEO CHIỀU NGANG)
+    private IEnumerator StrongHitPullCoroutine(Rigidbody2D playerRb, Vector2 pullForce, float duration)
+    {
+        Debug.Log($"[Hit Pull] Starting pull: {pullForce}, duration: {duration}");
+        float elapsed = 0f;
+        Vector2 originalVelocity = playerRb.velocity;
+        Debug.Log($"[Hit Pull] Original velocity: {originalVelocity}");
+
+        while (elapsed < duration)
+        {
+            float progress = elapsed / duration;
+            // Curve mạnh ở đầu, yếu dần
+            float pullCurve = Mathf.Lerp(1f, 0f, progress * progress);
+
+            // Apply pull CHỈ THEO CHIỀU NGANG - giữ nguyên velocity.y
+            Vector2 currentPull = pullForce * pullCurve;
+            Vector2 newVelocity = new Vector2(currentPull.x, playerRb.velocity.y); // GIỮ NGUYÊN Y VELOCITY
+            playerRb.velocity = newVelocity;
+
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        Debug.Log($"[Hit Pull] Pull complete, restoring...");
+
+        // Smooth restore CHỈ cho X velocity
+        float restoreTime = 0.1f;
+        elapsed = 0f;
+        Vector2 startVel = playerRb.velocity;
+        while (elapsed < restoreTime)
+        {
+            float progress = elapsed / restoreTime;
+            float targetX = originalVelocity.x * 0.3f;
+            float currentX = Mathf.Lerp(startVel.x, targetX, progress);
+            playerRb.velocity = new Vector2(currentX, playerRb.velocity.y); // CHỈ THAY ĐỔI X
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        Debug.Log($"[Hit Pull] Restore complete. Final velocity: {playerRb.velocity}");
+    }
+
+    // Boss recoil - boss bị "giật" khi nhận damage
+    private IEnumerator BossRecoilCoroutine(Vector2 hitDirection)
+    {
+        Vector3 originalScale = transform.localScale;
+        Vector3 recoilScale = originalScale;
+
+        // Compress boss sprite theo hướng hit
+        if (Mathf.Abs(hitDirection.x) > Mathf.Abs(hitDirection.y))
+        {
+            recoilScale.x *= 0.85f; // Squeeze horizontally
+            recoilScale.y *= 1.15f; // Stretch vertically
+        }
+        else
+        {
+            recoilScale.x *= 1.15f;
+            recoilScale.y *= 0.85f;
+        }
+
+        // Quick squash
+        float squashTime = 0.08f;
+        float elapsed = 0f;
+        while (elapsed < squashTime)
+        {
+            float progress = elapsed / squashTime;
+            transform.localScale = Vector3.Lerp(originalScale, recoilScale, progress);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        // Bounce back with overshoot
+        Vector3 overshootScale = originalScale * 1.05f;
+        float bounceTime = 0.15f;
+        elapsed = 0f;
+        while (elapsed < bounceTime)
+        {
+            float progress = elapsed / bounceTime;
+            float bounce = Mathf.Sin(progress * Mathf.PI);
+            transform.localScale = Vector3.Lerp(recoilScale, overshootScale, bounce);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        // Return to normal
+        float returnTime = 0.1f;
+        elapsed = 0f;
+        while (elapsed < returnTime)
+        {
+            float progress = elapsed / returnTime;
+            transform.localScale = Vector3.Lerp(transform.localScale, originalScale, progress);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        transform.localScale = originalScale;
+    }
+
+    // Camera zoom punch như Hades
+    private IEnumerator CameraZoomPunchCoroutine()
+    {
+        Camera mainCam = Camera.main;
+        if (mainCam == null) yield break;
+
+        float originalSize = mainCam.orthographicSize;
+        float zoomInSize = originalSize * 0.95f; // Zoom in slightly
+
+        // Quick zoom in
+        float zoomTime = 0.08f;
+        float elapsed = 0f;
+        while (elapsed < zoomTime)
+        {
+            float progress = elapsed / zoomTime;
+            mainCam.orthographicSize = Mathf.Lerp(originalSize, zoomInSize, progress);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        // Zoom back out
+        float zoomBackTime = 0.2f;
+        elapsed = 0f;
+        while (elapsed < zoomBackTime)
+        {
+            float progress = elapsed / zoomBackTime;
+            mainCam.orthographicSize = Mathf.Lerp(zoomInSize, originalSize, progress);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        mainCam.orthographicSize = originalSize;
+    }
+
+    // Boss hitstun với visual feedback
+    private IEnumerator BossHitStunCoroutine(float duration)
+    {
+        bool wasAttacking = isAttacking;
+        isAttacking = true;
+
+        // Visual feedback - flash boss red
+        if (spriteRenderer != null)
+        {
+            Color originalColor = spriteRenderer.color;
+            float flashDuration = 0.1f;
+
+            // Flash to white/red
+            spriteRenderer.color = Color.white;
+            yield return new WaitForSeconds(flashDuration);
+
+            // Fade back to normal
+            float fadeTime = duration - flashDuration;
+            float elapsed = 0f;
+            while (elapsed < fadeTime)
+            {
+                float progress = elapsed / fadeTime;
+                spriteRenderer.color = Color.Lerp(Color.white, originalColor, progress);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            spriteRenderer.color = originalColor;
+        }
+        else
+        {
+            yield return new WaitForSeconds(duration);
+        }
+
+        isAttacking = wasAttacking;
+    }
+
+    // Screen flash như Dead Cells
+    private IEnumerator ScreenFlashCoroutine()
+    {
+        // Tìm Canvas để tạo flash overlay
+        Canvas canvas = FindObjectOfType<Canvas>();
+        if (canvas == null) yield break;
+
+        // Tạo white flash overlay NHẸ HỢN
+        GameObject flashObj = new GameObject("HitFlash");
+        flashObj.transform.SetParent(canvas.transform, false);
+
+        UnityEngine.UI.Image flashImage = flashObj.AddComponent<UnityEngine.UI.Image>();
+        flashImage.color = new Color(1f, 1f, 1f, 0.08f); // GIẢM MẠNH alpha từ 0.3f → 0.08f
+
+        // Full screen
+        RectTransform rect = flashImage.rectTransform;
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+
+        // Fade out RẤT NHANH
+        float flashDuration = 0.05f; // GIẢM từ 0.15f → 0.05f
+        float elapsed = 0f;
+        Color startColor = flashImage.color;
+        Color endColor = new Color(1f, 1f, 1f, 0f);
+
+        while (elapsed < flashDuration)
+        {
+            float progress = elapsed / flashDuration;
+            flashImage.color = Color.Lerp(startColor, endColor, progress);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        Destroy(flashObj);
+    }
+
+    private IEnumerator HitPullCoroutine(Rigidbody2D targetRb, Vector2 pullForce, float duration)
+    {
+        float elapsed = 0f;
+        Vector2 originalVelocity = targetRb.velocity;
+
+        while (elapsed < duration)
+        {
+            float progress = elapsed / duration;
+            float pullStrength = Mathf.Lerp(1f, 0f, progress); // Giảm dần pull
+            targetRb.velocity = Vector2.Lerp(originalVelocity, pullForce, pullStrength * 0.3f);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        // Restore original velocity gradually
+        targetRb.velocity = Vector2.Lerp(targetRb.velocity, originalVelocity, 0.5f);
+    }
+
+    private IEnumerator BossStunCoroutine(float duration)
+    {
+        bool wasAttacking = isAttacking;
+        isAttacking = true; // Prevent boss from acting
+        Vector2 originalVelocity = rb.velocity;
+        rb.velocity = Vector2.zero; // Stop boss movement
+
+        yield return new WaitForSeconds(duration);
+
+        isAttacking = wasAttacking; // Restore original state
+    }
+
+    private void Die()
+    {
+        currentState = BossState.Dead;
+        animator.SetBool("IsDead", true);
+        rb.velocity = Vector2.zero;
+
+        // Ẩn BossHealthUI
+        BossHealthUI[] bossUIs = FindObjectsOfType<BossHealthUI>();
+        foreach (var ui in bossUIs)
+        {
+            ui.ForceUpdateHealth(); // cập nhật fill về 0
+            ui.HideBossUI(); // ẩn UI
+        }
+        // Các xử lý death khác (drop item, effect...)
+        TryDropItems();
+        ShowBuffSelectionUI();
+        // Destroy boss sau 2s
+        Destroy(gameObject, 2f);
+    }
     public bool IsAlive => currentHP > 0 && currentState != BossState.Dead;
     [Header("Item Drop Prefabs")]
     public GameObject healthPotionPrefab;
@@ -1406,10 +1751,7 @@ public class Igris : MonoBehaviour, IDamageable
         if (currentHP <= 0)
         {
             currentHP = 0;
-            ChangeState(BossState.Dead);
-            TryDropItems(); // Drop items on death
-            ShowBuffSelectionUI(); // Show buff selection after boss dies
-            Destroy(gameObject); // Destroy Igris after death
+            Die(); // Gọi Die() để ẩn UI và xử lý đúng
         }
         else
         {

@@ -45,6 +45,7 @@ public class SkeletonController : MonoBehaviour
     private int currentHealth;
     private bool isDead = false;
     private Damageable damageable;
+    private EnemyHealthBar healthBar;
 
     enum State { Idle, Chasing, Attacking, Hurt, Dead }
     State currentState = State.Idle;
@@ -56,6 +57,13 @@ public class SkeletonController : MonoBehaviour
         sprite = GetComponent<SpriteRenderer>();
         currentHealth = maxHealth;
         damageable = GetComponent<Damageable>();
+        
+        // Initialize health bar
+        healthBar = GetComponent<EnemyHealthBar>();
+        if (healthBar == null)
+        {
+            healthBar = gameObject.AddComponent<EnemyHealthBar>();
+        }
     }
 
     void Update()
@@ -158,6 +166,12 @@ public class SkeletonController : MonoBehaviour
         if (isDead) return;
 
         currentHealth -= dmg;
+        
+        // Update health bar
+        if (healthBar != null)
+        {
+            healthBar.SetHealth(currentHealth, maxHealth);
+        }
 
         if (currentHealth <= 0)
         {
@@ -170,6 +184,10 @@ public class SkeletonController : MonoBehaviour
         }
     }
 
+    // Health getters for health bar
+    public int GetCurrentHealth() { return currentHealth; }
+    public int GetMaxHealth() { return maxHealth; }
+
     void Die()
     {
         // Drop items
@@ -178,6 +196,12 @@ public class SkeletonController : MonoBehaviour
         currentState = State.Dead;
         anim.SetTrigger("Die");
         rb.velocity = Vector2.zero;
+
+        // Hide health bar
+        if (healthBar != null)
+        {
+            healthBar.HideHealthBar();
+        }
 
         // Award experience to player
         var experienceSystem = FindObjectOfType<ExperienceSystem>();

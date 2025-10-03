@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Cinemachine;
 
 
 [RequireComponent(typeof(Animator))]
@@ -68,7 +69,7 @@ public class PlayerCombat : MonoBehaviour
     [Tooltip("Multiplier applied to Animator.speed during attacks")] public float attackSpeed = 1f;
 
     [Header("Hit Stop")]
-    public float hitStopTime = 0.05f; // thời gian pause khi đánh trúng
+    public float hitStopTime = 0.03f; // Rất ngắn - chỉ 1-2 frames như game AAA
 
     Animator anim;
     PlayerController controller;
@@ -100,6 +101,34 @@ public class PlayerCombat : MonoBehaviour
         anim = GetComponent<Animator>();
         controller = GetComponent<PlayerController>();
         audioSource = gameObject.AddComponent<AudioSource>();
+
+        // Setup enhanced hit parameters cho meaty hit feeling
+        SetupEnhancedHitParameters();
+    }
+
+    void SetupEnhancedHitParameters()
+    {
+        // Light attacks: hit pull vừa + knockback để giữ khoảng cách
+        foreach (var hitbox in lightHits)
+        {
+            if (hitbox != null)
+            {
+                hitbox.knockbackForce = 8f;      // TĂNG knockback để đẩy enemy ra
+                hitbox.hitPullStrength = 7f;     // GIẢM hit pull để không sát quá
+            }
+        }
+
+        // Heavy attacks: knockback mạnh + hit pull vừa phải
+        foreach (var hitbox in heavyHits)
+        {
+            if (hitbox != null)
+            {
+                hitbox.knockbackForce = 12f;     // knockback mạnh để tạo khoảng cách
+                hitbox.hitPullStrength = 10f;    // GIẢM hit pull cho heavy
+            }
+        }
+
+        Debug.Log("Balanced hit parameters - pull to range + push for spacing!");
     }
 
     void OnLight(InputValue v)
@@ -221,11 +250,15 @@ public class PlayerCombat : MonoBehaviour
         anim.speed = attackSpeed;
 
         Vector2 dir = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
-        float slide = 1.0f; //dịch nhẹ khi đánh
+        float slide = 0.3f; // Slide nhẹ khi attack - tự nhiên hơn
 
-        // Nếu là đòn cuối của light combo thì lướt xa hơn
-        // if (type == AttackType.Light && currentIndex == maxLightCombo)
-        //     slide = 4.0f;
+        // Heavy attacks slide mạnh hơn light
+        if (type == AttackType.Heavy)
+            slide = 0.5f;
+
+        // Nếu là đòn cuối của light combo thì lướt xa hơn một chút
+        if (type == AttackType.Light && currentIndex == maxLightCombo)
+            slide = 0.6f; // Đòn cuối lướt xa hơn một chút
 
         // Đòn thứ 4 của heavy attack: hất enemy lên và nhân vật nhảy lên
         if (type == AttackType.Heavy && currentIndex == 4)
@@ -247,6 +280,7 @@ public class PlayerCombat : MonoBehaviour
             KnockdownEnemiesDiagonal();
         }
 
+        // Slide nhẹ khi attack - natural movement
         transform.position += (Vector3)(dir * slide);
 
         if ((type == AttackType.Light && currentIndex == maxLightCombo) ||
@@ -339,11 +373,37 @@ public class PlayerCombat : MonoBehaviour
         foreach (var h in heavyHits) h.gameObject.SetActive(false);
     }
 
-    // Coroutine hit stop (pause game ngắn)
+    // Coroutine hit stop (pause game ngắn) với SUBTLE EFFECTS
     IEnumerator HitStopCoroutine()
     {
+        // WORLD HITSTOP cực ngắn
         Time.timeScale = 0f;
-        yield return new WaitForSecondsRealtime(hitStopTime);
+
+        // Camera shake NHẸ trong hitstop
+        var virtualCam = FindObjectOfType<Cinemachine.CinemachineVirtualCamera>();
+        if (virtualCam != null)
+        {
+            var noise = virtualCam.GetCinemachineComponent<Cinemachine.CinemachineBasicMultiChannelPerlin>();
+            if (noise != null)
+            {
+                float originalAmplitude = noise.m_AmplitudeGain;
+                noise.m_AmplitudeGain = 1.2f; // GIẢM camera shake từ 2.5f → 1.2f
+
+                yield return new WaitForSecondsRealtime(hitStopTime);
+
+                // Restore camera
+                noise.m_AmplitudeGain = originalAmplitude;
+            }
+            else
+            {
+                yield return new WaitForSecondsRealtime(hitStopTime);
+            }
+        }
+        else
+        {
+            yield return new WaitForSecondsRealtime(hitStopTime);
+        }
+
         Time.timeScale = 1f;
     }
 
@@ -352,11 +412,34 @@ public class PlayerCombat : MonoBehaviour
     {
         if (isIntroLock) return;
         // Không cần gọi PlayAttackFX/Sfx nữa, đã xử lý trong Hitbox.cs
-        // Nếu muốn: Camera shake, v.v.
-        // Tạo hit stop (pause game ngắn)
+
+        // Tạo hit stop ngắn (pause game 1-2 frames)
         if (hitStopTime > 0f)
         {
             StartCoroutine(HitStopCoroutine());
+        }
+
+        // Thêm player recoil khi hit để tạo cảm giác phản lực
+        StartCoroutine(PlayerRecoilCoroutine());
+    }
+
+    // Player recoil - phản lực nhẹ khi đánh trúng
+    IEnumerator PlayerRecoilCoroutine()
+    {
+        var rb = GetComponent<Rigidbody2D>();
+        if (rb != null)
+        {
+            // Recoil ngược chiều đánh
+            Vector2 recoilDirection = transform.localScale.x > 0 ? Vector2.left : Vector2.right;
+            float recoilForce = (currentType == AttackType.Heavy) ? 3f : 1.5f; // Heavy mạnh hơn
+
+            // Apply recoil ngắn
+            Vector2 originalVel = rb.velocity;
+            rb.velocity = new Vector2(recoilDirection.x * recoilForce, rb.velocity.y);
+
+            // Restore sau 0.1s
+            yield return new WaitForSeconds(0.1f);
+            rb.velocity = new Vector2(originalVel.x * 0.8f, rb.velocity.y); // Giảm momentum nhẹ
         }
     }
 

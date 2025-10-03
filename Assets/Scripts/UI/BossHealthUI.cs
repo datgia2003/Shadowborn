@@ -9,6 +9,7 @@ using System.Collections;
 /// </summary>
 public class BossHealthUI : MonoBehaviour
 {
+
     [Header("UI References")]
     public Slider healthBar;
     public Image healthFill;
@@ -97,6 +98,18 @@ public class BossHealthUI : MonoBehaviour
             Debug.LogWarning("BossHealthUI: No Igris boss script found!");
         }
     }
+    public void HideBossUI()
+    {
+        // Dừng mọi coroutine liên quan đến healthbar
+        if (healthBarCoroutine != null) StopCoroutine(healthBarCoroutine);
+        if (colorTransitionCoroutine != null) StopCoroutine(colorTransitionCoroutine);
+        if (enragedPulseCoroutine != null) StopCoroutine(enragedPulseCoroutine);
+        // Đảm bảo fill về 0
+        if (healthBar != null) healthBar.value = 0f;
+        if (healthFill != null) healthFill.color = lowHealthColor;
+        if (bossUIPanel != null) bossUIPanel.SetActive(false);
+        isVisible = false;
+    }
 
     void Update()
     {
@@ -104,12 +117,14 @@ public class BossHealthUI : MonoBehaviour
 
         // Update health values
         UpdateHealthDisplay();
-
         // Check enrage state
         CheckEnrageState();
-
-        // Auto show/hide based on boss state
-        UpdateVisibility();
+        // Nếu boss die hoặc HP <= 0 thì ẩn UI, không gọi UpdateVisibility nữa
+        if (bossScript == null || bossScript.GetCurrentState() == Igris.BossState.Dead || bossScript.GetCurrentHP() <= 0)
+        {
+            HideBossUI();
+            return;
+        }
     }
 
     void UpdateHealthDisplay()
@@ -120,23 +135,24 @@ public class BossHealthUI : MonoBehaviour
         // Calculate target percentage
         float newTargetPercentage = (float)currentHP / maxHP;
 
-        // Only animate if health changed
+        // Nếu HP <= 0 thì cập nhật fill về 0 và text về 0
+        if (currentHP <= 0)
+        {
+            targetHealthPercentage = 0f;
+            if (healthBarCoroutine != null) StopCoroutine(healthBarCoroutine);
+            if (healthBar != null) healthBar.value = 0f;
+            if (healthText != null) healthText.text = $"0 / {maxHP}";
+            UpdateHealthColor(targetHealthPercentage);
+            return;
+        }
+        // Chỉ animate nếu health thay đổi
         if (Mathf.Abs(targetHealthPercentage - newTargetPercentage) > 0.001f)
         {
             targetHealthPercentage = newTargetPercentage;
-
-            // Start health bar animation
-            if (healthBarCoroutine != null)
-            {
-                StopCoroutine(healthBarCoroutine);
-            }
+            if (healthBarCoroutine != null) StopCoroutine(healthBarCoroutine);
             healthBarCoroutine = StartCoroutine(AnimateHealthBar());
-
-            // Update health color based on percentage
             UpdateHealthColor(targetHealthPercentage);
         }
-
-        // Update health text
         if (healthText != null)
         {
             healthText.text = $"{currentHP} / {maxHP}";
@@ -214,8 +230,7 @@ public class BossHealthUI : MonoBehaviour
     void UpdateVisibility()
     {
         // Show UI when boss is active and alive
-        bool shouldBeVisible = bossScript.GetCurrentState() != Igris.BossState.Dead &&
-                              bossScript.GetCurrentHP() > 0;
+        bool shouldBeVisible = bossScript != null && bossScript.GetCurrentState() != Igris.BossState.Dead && bossScript.GetCurrentHP() > 0;
 
         if (isVisible != shouldBeVisible)
         {
@@ -327,14 +342,6 @@ public class BossHealthUI : MonoBehaviour
         }
     }
 
-    public void HideBossUI()
-    {
-        if (bossUIPanel != null)
-        {
-            bossUIPanel.SetActive(false);
-            isVisible = false;
-        }
-    }
 
     public void SetBossName(string name)
     {

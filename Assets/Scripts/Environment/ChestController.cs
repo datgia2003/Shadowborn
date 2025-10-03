@@ -151,7 +151,3 @@ public class ChestController : MonoBehaviour
     }
 }
 
-internal class CoinPickup
-{
-    public int amount;
-}

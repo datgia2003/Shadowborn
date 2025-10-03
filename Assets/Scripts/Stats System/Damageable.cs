@@ -5,11 +5,14 @@ using UnityEngine;
 public interface IDamageable
 {
     void TakeHit(float dmg);
+    void TakeHit(float dmg, Vector2 hitDirection, Transform attacker = null, float knockbackForce = 10f, float hitPullStrength = 5f);
     bool IsAlive { get; }
 }
 
 public class Damageable : MonoBehaviour, IDamageable
 {
+    // Kiểm soát trạng thái AI
+    private bool isAIForcedDisabled = false;
     [Header("HP")]
     public float MaxHP = 100f;
     public float CurrentHP = 100f;
@@ -19,7 +22,7 @@ public class Damageable : MonoBehaviour, IDamageable
     private bool hasDied = false;
 
     [Header("Stun & Hit Effect")]
-    public float StunDuration = 0.8f; // thời gian đứng yên sau khi bị đánh (tăng mặc định)
+    public float StunDuration = 1.2f; // tăng thời gian stun khi bị đánh
     public bool IsStunned { get; private set; }
     public float HitPullStrength = 5.0f; // lực kéo dính vào đòn (tăng mặc định)
     public float KnockbackForce = 10f;    // lực đẩy lùi khi bị đánh
@@ -40,11 +43,11 @@ public class Damageable : MonoBehaviour, IDamageable
     // Gọi hàm này khi bị đánh, truyền thêm hướng đòn đánh (nếu có)
     public void TakeHit(float dmg)
     {
-        TakeHit(dmg, Vector2.zero, null);
+        TakeHit(dmg, Vector2.zero, null, KnockbackForce, HitPullStrength);
     }
 
-    // Overload: truyền hướng đòn đánh và vị trí attacker (nếu có)
-    public void TakeHit(float dmg, Vector2 hitDirection, Transform attacker = null)
+    // Overload: truyền hướng đòn đánh, vị trí attacker, lực knockback/hit pull
+    public void TakeHit(float dmg, Vector2 hitDirection, Transform attacker = null, float knockbackForce = 10f, float hitPullStrength = 5f)
     {
         if (!IsAlive) return;
 
@@ -60,23 +63,42 @@ public class Damageable : MonoBehaviour, IDamageable
             Stun();
 
             // Disable AI khi bị stun/hit pull
+            isAIForcedDisabled = true;
             SetAIScriptsEnabled(false);
 
+            // Hit stop cho enemy: chỉ freeze Animator, không freeze toàn bộ game
+            if (animator != null)
+                StartCoroutine(HitStopAnimatorCoroutine(animator, 0.12f));
+
             // Hit pull (kéo dính về attacker) - chỉ áp dụng nếu attacker là player
-            if (attacker != null && HitPullStrength > 0f && attacker.CompareTag("Player"))
+            if (attacker != null && hitPullStrength > 0f && attacker.CompareTag("Player"))
             {
                 StopCoroutine("HitPullCoroutine"); // tránh kéo chồng nhiều lần
-                StartCoroutine(HitPullCoroutine(attacker));
+                StartCoroutine(HitPullCoroutine(attacker, hitPullStrength));
             }
 
-            // Knockback (ưu tiên dùng Rigidbody2D)
+            // Knockback - ưu tiên đẩy ENEMY RA KHỎI PLAYER
             if (rb != null && (hitDirection != Vector2.zero || attacker != null))
             {
                 Vector2 dir = hitDirection;
                 if (dir == Vector2.zero && attacker != null)
+                {
+                    // Tính hướng từ player ra enemy (đảm bảo đẩy ra ngoài)
                     dir = ((Vector2)transform.position - (Vector2)attacker.position).normalized;
-                // Knockback rõ ràng hơn: set cả trục Y nếu muốn hất lên
-                Vector2 knockback = new Vector2(dir.x * KnockbackForce, Mathf.Abs(dir.y) > 0.1f ? dir.y * KnockbackForce : rb.velocity.y);
+                }
+
+                // Force hướng đẩy ra ngoài nếu quá gần
+                float distanceToPlayer = Vector3.Distance(transform.position, attacker.position);
+                if (distanceToPlayer < 2f && attacker != null)
+                {
+                    // Đẩy mạnh ra ngoài nếu quá gần
+                    dir = ((Vector2)transform.position - (Vector2)attacker.position).normalized;
+                    knockbackForce *= 1.5f; // Tăng knockback khi quá gần
+                }
+
+                // Knockback chủ yếu theo chiều ngang, Y nhẹ hơn
+                Vector2 knockback = new Vector2(dir.x * knockbackForce,
+                    Mathf.Abs(dir.y) > 0.1f ? dir.y * knockbackForce * 0.6f : rb.velocity.y * 0.8f);
                 rb.velocity = knockback;
                 lastHitDirection = dir;
             }
@@ -90,31 +112,75 @@ public class Damageable : MonoBehaviour, IDamageable
                 OnDeath();
             }
         }
+
     }
 
-    // Kéo enemy về gần attacker trong thời gian ngắn (hit pull rõ ràng hơn)
-    IEnumerator HitPullCoroutine(Transform attacker)
+    // Hit stop cho enemy: chỉ freeze Animator
+    IEnumerator HitStopAnimatorCoroutine(Animator anim, float duration)
+    {
+        float prevSpeed = anim.speed;
+        anim.speed = 0f;
+        yield return new WaitForSecondsRealtime(duration);
+        anim.speed = prevSpeed;
+    }
+
+    // Kéo enemy vào tầm đánh NHƯNG GIỮ KHOẢNG CÁCH tối thiểu
+    IEnumerator HitPullCoroutine(Transform attacker, float hitPullStrength)
     {
         float t = 0f;
-        float duration = 0.45f; // thời gian kéo dính (tăng mặc định)
-        Vector3 start = transform.position;
-        Vector3 target = attacker.position + (transform.position - attacker.position).normalized * 0.5f; // giữ khoảng cách nhỏ
+        float duration = 0.2f; // Duration ngắn hơn
+
+        isAIForcedDisabled = true;
         SetAIScriptsEnabled(false); // disable AI khi kéo
-        bool wasKinematic = false;
+
         if (rb != null)
         {
-            wasKinematic = rb.isKinematic;
-            rb.isKinematic = true;
-            rb.velocity = Vector2.zero;
+            // Backup gravity để restore sau
+            float originalGravityScale = rb.gravityScale;
+
+            Vector3 startPos = transform.position;
+            float distanceToPlayer = Vector3.Distance(transform.position, attacker.position);
+            float minDistance = 1.5f; // KHOẢNG CÁCH TỐI THIỂU - không kéo gần hơn thế này
+
+            // CHỈ pull nếu ở xa hơn khoảng cách tối thiểu
+            if (distanceToPlayer > minDistance)
+            {
+                Vector3 targetDirection = (attacker.position - transform.position).normalized;
+
+                // GIẢM gravity trong lúc pull để tránh bị kéo xuống
+                rb.gravityScale = 0.3f; // Giảm gravity mạnh
+
+                while (t < duration)
+                {
+                    // Check khoảng cách realtime - dừng pull nếu đã đủ gần
+                    float currentDistance = Vector3.Distance(transform.position, attacker.position);
+                    if (currentDistance <= minDistance)
+                        break;
+
+                    float progress = t / duration;
+                    // Curve mạnh ở đầu, yếu dần
+                    float pullCurve = Mathf.Lerp(1f, 0f, progress * progress);
+
+                    // Apply pull CHỈ THEO CHIỀU NGANG + giữ Y velocity hiện tại
+                    Vector2 horizontalPull = new Vector2(targetDirection.x * hitPullStrength * pullCurve, 0f);
+                    rb.velocity = new Vector2(horizontalPull.x, rb.velocity.y);
+
+                    t += Time.deltaTime;
+                    yield return null;
+                }
+
+                // Restore gravity và velocity
+                rb.gravityScale = originalGravityScale;
+                rb.velocity = new Vector2(0f, rb.velocity.y); // Chỉ clear X velocity
+            }
         }
-        while (t < duration)
+
+        // Chỉ enable lại AI nếu không còn stun
+        if (!IsStunned)
         {
-            t += Time.deltaTime * HitPullStrength;
-            transform.position = Vector3.Lerp(start, target, t / duration);
-            yield return null;
+            isAIForcedDisabled = false;
+            SetAIScriptsEnabled(true); // enable lại AI sau khi kéo
         }
-        if (rb != null) rb.isKinematic = wasKinematic;
-        SetAIScriptsEnabled(true); // enable lại AI sau khi kéo
     }
 
     // (Hit stop đã chuyển sang PlayerCombat quản lý)
@@ -127,7 +193,9 @@ public class Damageable : MonoBehaviour, IDamageable
             if (stunTimer <= 0f)
             {
                 IsStunned = false;
-                SetAIScriptsEnabled(true); // enable lại AI sau stun
+                // Chỉ enable lại AI nếu không bị hit pull
+                if (!isAIForcedDisabled)
+                    SetAIScriptsEnabled(true); // enable lại AI sau stun
             }
         }
     }

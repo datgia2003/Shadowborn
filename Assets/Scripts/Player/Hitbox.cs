@@ -15,7 +15,12 @@ public class Hitbox : MonoBehaviour
 
     public float Damage = 10f;
     public LayerMask TargetMask; // đặt = Enemy
-    //public Transform Owner;
+    [Header("Knockback/Hit Pull Settings")]
+    public float knockbackForce = 10f; // lực đẩy lùi (tùy chỉnh cho từng hitbox)
+    public float hitPullStrength = 5f; // lực hút (tùy chỉnh cho từng hitbox)
+    public bool knockUp = false; // hất lên
+    public bool knockdownDiagonal = false; // knockdown chéo
+    public Transform owner; // gán player làm owner
 
     [Header("FX khi đánh trúng (nhiều FX, scale, angle)")]
     public HitFXInfo[] hitFXs;
@@ -34,7 +39,45 @@ public class Hitbox : MonoBehaviour
         var dmg = other.GetComponentInParent<IDamageable>();
         if (dmg != null)
         {
-            dmg.TakeHit(Damage);
+            Vector2 hitDir = Vector2.right;
+            if (owner != null)
+                hitDir = owner.localScale.x > 0 ? Vector2.right : Vector2.left;
+            // Nếu knockUp, set hướng lên
+            if (knockUp)
+                hitDir = new Vector2(hitDir.x, 1f).normalized;
+            // Nếu knockdownDiagonal, set hướng chéo xuống
+            if (knockdownDiagonal)
+                hitDir = new Vector2(hitDir.x, -1f).normalized;
+
+            // Truyền FULL parameters cho TakeHit mới với enhanced effects
+            var damageable = dmg as Damageable;
+            if (damageable != null)
+            {
+                // Gọi TakeHit với đầy đủ parameters cho enhanced effects
+                damageable.TakeHit(Damage, hitDir, owner, knockbackForce, hitPullStrength);
+            }
+            else
+            {
+                // Thử gọi TakeHit enhanced cho boss/enemies khác
+                try
+                {
+                    var bossIgris = dmg as Igris;
+                    if (bossIgris != null)
+                    {
+                        bossIgris.TakeHit(Damage, hitDir, owner, knockbackForce, hitPullStrength);
+                    }
+                    else
+                    {
+                        // Fallback cho IDamageable thông thường
+                        dmg.TakeHit(Damage);
+                    }
+                }
+                catch
+                {
+                    dmg.TakeHit(Damage);
+                }
+            }
+
             // FX, Sound, Camera shake khi đánh trúng
             if (hitFXs != null)
             {
